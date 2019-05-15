@@ -1,4 +1,12 @@
 # DBMS
 
-An elementary relational database management system written in **language unknown**
+## Description
+An elementary relational database management system written in **C++**
 
+## Dependency
+
+## How to Deploy
+
+## Feature Supported
+
+## Sample
