@@ -59,7 +59,7 @@ namespace BM{
         // close the file according to the given path
         // all pages of this file in buffer will be flushed away
         // @param: the path to the file to be closed
-        // @throw: std::invalid_argument("Unopened file") if the file is not open in the BufferManager
+        // @throw: std::invalid_argument("Invalid file") if the file is not open in the BufferManager
         void closeFile(std::string path);
 
         // delete the file according to the given path
@@ -77,7 +77,7 @@ namespace BM{
 
         // read specified page of a file according to the path to the file and the index of the page
         // if the file has not been opened yet, open the file first
-        // @oaram: the path to the file and the index of the page
+        // @param: the path to the file and the index of the page
         // @throw: std::out_of_range("Full Buffer") exception if the buffer is full and the replacement fails
         //         std::runtime_error("Fail opening file") if the file does not be opened properly
         // @return: The reference to the specifed page in buffer
@@ -96,9 +96,10 @@ namespace BM{
         // get the last page of file relative to current page
         Page& getLastPage(const Page &page);
 
-        // create a new page appending to the tail of the file and read it into buffer
+        // create a new page appending to the tail of the file
         // @param: path to the file 
         // @throw: std::out_of_range("Full Buffer") exception if the buffer is full and the replacement fails
+        //         std::runtime_error("Fail opening file") if the file does not be opened properly
         // @return: The reference to the specifed page in buffer
         Page& createPage(const std::string &path);
     private:

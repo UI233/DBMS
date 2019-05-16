@@ -1,15 +1,10 @@
 #include "BufferManager.h"
-
+#include <cstring>
 using namespace BM;
 
 BufferManager::BufferManager(){
-
+    memset(ref_bits, 0, sizeof(ref_bits));
 }
 
 BufferManager::~BufferManager(){
-    for(auto &page: pool){
-        unsigned int idx = page.second;
-        pages[idx].close();
-    }
-
 }
