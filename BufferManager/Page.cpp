@@ -19,7 +19,7 @@ void Page::forceWrite() {
         throw std::invalid_argument("Invalid page");
 
     write.seekp(0, page_index * PAGESIZE);
-    auto before = write.tellp;
+    auto before = write.tellp();
     write.write((char *)&data[0], PAGESIZE);
     if (!write.good() || write.tellp() - before != PAGESIZE)
         throw std::runtime_error("Fail writting back");
@@ -59,4 +59,23 @@ bool Page::read() {
         return false;
 
     return true;
+}
+
+void Page::init(const std::shared_ptr<imp::FileManager> &fp, unsigned int idx) {
+    file = fp;
+    page_index = idx;
+    is_open = read();
+    dirty = false;
+    pinned = true;
+}
+
+void Page::modify(char * pdata, int beg, int end) {
+    if(beg < 0 || end > PAGESIZE)
+        throw std::invalid_argument("Out of range");
+    if (!is_open)
+        throw std::invalid_argument("Invalid page");
+
+    memcpy(&data[beg], pdata, end - beg);
+
+    dirty = true;
 }

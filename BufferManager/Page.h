@@ -19,6 +19,7 @@ namespace BM{
         unsigned int page_index;
         std::shared_ptr<imp::FileManager> file;
         bool read();
+        void init(const std::shared_ptr<imp::FileManager> &fp, unsigned int idx);
     public:
         std::array<unsigned char, PAGESIZE> data;
 
@@ -27,6 +28,13 @@ namespace BM{
         // @throw: std::invalid_argument("Pinned page") if the page is pinned
         //         std::invalid_argument("Invalid page") if the page is invalid
         void close();
+
+        // modify the data in [beg, end) of the data member
+        // and set this page to be dirty
+        // @params: the pointer to the date to be copied from, the begin and end position of the data to be modified in this page
+        // @throw: std::invalid_argument("Out of range") if beg < 0 or end > PAGESIZE
+        //         std::invalid_argument("Invalid page") if this page is invalid
+        void modify(char * pdata, int beg, int end);
 
         // unpin this page to allow the BufferManager to replace it when the buffer is full
         inline void unpin() noexcept {pinned = false;}
@@ -47,9 +55,17 @@ namespace BM{
 
         // @return: a bool indicate whether the page is valid
         inline bool isValid() const noexcept { return is_open; }
+        
+        // @return: whether this page is the first page of the file i.e. page_index == 0
+        inline bool isFirst() const{ return page_index == 0; }
+
+        // @return: whether this page is the last page of the file i.e. page_index == page_num - 1
+        inline bool isLast() const noexcept { return page_index == file->page_num - 1; }
 
         Page(): is_open(false), dirty(false), pinned(false) {}
         ~Page();
+        Page(const Page &) = delete;
+        Page& operator = (const Page &) = delete;
     };
 }
 #endif

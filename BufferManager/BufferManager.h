@@ -2,11 +2,12 @@
 #define BUFFER_MANAGER_H
 #include "Page.h"
 #include <memory>
-#include <unordered_map>
-#include <unordered_set>
+#include <map>
 #include <fstream>
 #include <exception>
 #include <stdexcept>
+#include <bitset>
+#include <vector>
 
 namespace BM{
 
@@ -21,7 +22,7 @@ namespace BM{
         public:
             queue(): cap(0), head(0), tail(0) {}
             inline bool isfull() noexcept {return cap == MAXSIZE;}
-            inline bool push(const T &v) {
+            inline void push(const T &v) {
                 if(cap == MAXSIZE)
                     throw std::out_of_range("Full queue");
                 cap++; 
@@ -39,13 +40,17 @@ namespace BM{
 
             inline T front() const{
                 if(cap == 0)
-                    return std::out_of_range("Empty queue");
+                    throw std::out_of_range("Empty queue");
                 return data[head];
             }
             
             inline void rotate() noexcept{
                 head = (head + 1) % MAXSIZE;
                 tail = (tail + 1) % MAXSIZE;
+            }
+
+            inline unsigned int getCap() noexcept {
+                return cap;
             }
         };
     }
@@ -60,7 +65,7 @@ namespace BM{
         // all pages of this file in buffer will be flushed away
         // @param: the path to the file to be closed
         // @throw: std::invalid_argument("Invalid file") if the file is not open in the BufferManager
-        void closeFile(std::string path);
+        void closeFile(const std::string &path);
 
         // delete the file according to the given path
         // @require: there is no page of this file in buffer
@@ -68,17 +73,13 @@ namespace BM{
         // @throw: std::run_time_error("Fail deleting file") if the funciton fails to delete the file
         void deleteFile(const std::string &path);
         
-        // open the file according to given path and read the first page into memory
+        // read specified page of a file according to the path to the file and the index of the page
+        // if the file has not been open yet, open the file first
         // if the path does not exist, create an empty file
         // the openmode of file is (in | out | binary)
-        // @param: the path of the file to be opened 
-        // @throw: std::runtime_error("Fail opening file") if the file does not be opened successfully
-        Page& openFile(const std::string &path);
-
-        // read specified page of a file according to the path to the file and the index of the page
-        // if the file has not been opened yet, open the file first
         // @param: the path to the file and the index of the page
-        // @throw: std::out_of_range("Full Buffer") exception if the buffer is full and the replacement fails
+        // @throw: std::out_of_range("Full buffer") exception if the buffer is full and the replacement fails
+        //         std::out_of_range("Out of range") if index excess the number of pages of the file
         //         std::runtime_error("Fail opening file") if the file does not be opened properly
         // @return: The reference to the specifed page in buffer
         Page& getPage(const std::string &path, unsigned int index);
@@ -102,15 +103,18 @@ namespace BM{
         //         std::runtime_error("Fail opening file") if the file does not be opened properly
         // @return: The reference to the specifed page in buffer
         Page& createPage(const std::string &path);
-    private:
-        std::unordered_map<PageInfo, unsigned int> pool;
-        std::unordered_multimap<std::string, unsigned int> file2page;
 
+        BufferManager(const BufferManager &) = delete;
+        BufferManager& operator = (const BufferManager &) = delete;
+    private:
+        std::multimap<std::string, unsigned int> file2page;
+        std::vector<unsigned int> active_list;
         Page pages[POOLSIZE];
         imp::queue<unsigned int, POOLSIZE> ref_q;
-        unsigned int ref_bits[POOLSIZE];
-        Page& allocateNewPage();
-        Page& replace();
+        std::bitset<POOLSIZE> ref_bits;
+        unsigned int allocateNewPage();
+        unsigned int replace();
+        Page& getPageRelative(unsigned int idx, const std::shared_ptr<imp::FileManager> &fp);
     };
 }
 

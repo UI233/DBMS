@@ -11,13 +11,13 @@ namespace BM{
 
    namespace imp{
     class FileManager{
-    private:
     public:
         std::fstream stream;
         std::string path;
         unsigned int page_num; // the number of pages in the file
-        FileManager();
-        ~FileManager();
+        FileManager() = delete;
+        FileManager(const std::string &path);
+        ~FileManager() = default;
     };
    } // namespace 
 } // namespace BM
