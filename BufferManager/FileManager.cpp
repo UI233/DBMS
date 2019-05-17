@@ -2,15 +2,25 @@
 
 using namespace BM;
 static char data[PAGESIZE];
-BM::imp::FileManager::FileManager(const std::string &path) :
-    stream(path, std::ios::in | std::ios::out | std::ios::binary),
-    path(path){
-    if (stream.tellg() == -1) {
-        std::ofstream creator(path);
-        creator.write(data, PAGESIZE);
-    }
+
+void imp::FileManager::init(const std::string &path) {
+    this->path = path;
+    stream.close();
     stream.open(path, std::ios::in | std::ios::out | std::ios::binary);
     stream.seekg(0, stream.end);
-    page_num = stream.tellg() / PAGESIZE;
-    stream.seekg(stream.beg);
+    if (stream.tellg() < PAGESIZE) {
+        stream.close();
+        std::ofstream creator(path, std::ios::out | std::ios::binary);
+        creator.write(data, PAGESIZE);
+        creator.close();
+        stream.open(path, std::ios::in | std::ios::out | std::ios::binary);
+        page_num = 1;
+    }
+    else {
+        page_num = stream.tellg() / PAGESIZE;
+    }
+}
+
+imp::FileManager::FileManager(const std::string &path) {
+    init(path);
 }

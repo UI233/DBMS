@@ -4,21 +4,19 @@ using namespace BM;
 
 Page::~Page() {
     if (is_open && dirty)
-        forceWrite();
+       forceWrite();
 }
 
 void Page::forceWrite() {
     dirty = false;
     if (!is_open)
         throw std::invalid_argument("Invalid page");
-    if (file.use_count() == 0)
-        throw std::invalid_argument("Invalid page");
-    auto & write = file->stream;
+    auto & write = file.stream;
 
     if(!write.good())
         throw std::invalid_argument("Invalid page");
 
-    write.seekp(0, page_index * PAGESIZE);
+    write.seekp(page_index * PAGESIZE, write.beg);
     auto before = write.tellp();
     write.write((char *)&data[0], PAGESIZE);
     if (!write.good() || write.tellp() - before != PAGESIZE)
@@ -32,37 +30,35 @@ void Page::close() {
         throw std::invalid_argument("Pinned page");
 
     forceWrite();
-    file.reset();
+    file.stream.close();
     is_open = false;
     pinned = false;
     dirty = false;
 }
 
 PageInfo Page::getInfo() const {
-    if (!is_open || file.use_count() == 0)
+    if (!is_open)
         throw std::invalid_argument("Invalid page");
 
-    return std::make_pair(page_index, file->path);
+    return std::make_pair(page_index, file.path);
 }
 
 bool Page::read() {
-    if (file.use_count() == 0)
-        return false;
-    if (!file->stream.good())
+    if (!file.stream.good())
         return false;
 
-    auto &read = file->stream;
-    read.seekg(0, page_index * PAGESIZE);
+    auto &read = file.stream;
+    read.seekg(page_index * PAGESIZE, read.beg);
     auto before = read.tellg();
     read.read((char *)&data[0], PAGESIZE);
-    if (read.bad() || read.tellg() - before)
+    if (read.bad() || read.tellg() - before < PAGESIZE)
         return false;
 
     return true;
 }
 
-void Page::init(const std::shared_ptr<imp::FileManager> &fp, unsigned int idx) {
-    file = fp;
+void Page::init(const std::string &path, unsigned int idx) {
+    file.init(path);
     page_index = idx;
     is_open = read();
     dirty = false;

@@ -13,21 +13,17 @@ namespace BM{
     {
         friend class BufferManager;
     private:
+        //BufferManager *host;
         bool dirty; // indicate whether the page has been or will be modified
         bool pinned; // indicata whether the page will be used in the future, if a page is pinned it would not be flushed away during replacement
         bool is_open; // indicate whether the page is valid
         unsigned int page_index;
-        std::shared_ptr<imp::FileManager> file;
+        imp::FileManager file;
         bool read();
-        void init(const std::shared_ptr<imp::FileManager> &fp, unsigned int idx);
+        void init(const std::string &path, unsigned int idx);
+        void close();
     public:
         std::array<unsigned char, PAGESIZE> data;
-
-        // close the certain page, throw it out from buffer
-        // if the page is dirty write this page back to disk
-        // @throw: std::invalid_argument("Pinned page") if the page is pinned
-        //         std::invalid_argument("Invalid page") if the page is invalid
-        void close();
 
         // modify the data in [beg, end) of the data member
         // and set this page to be dirty
@@ -60,7 +56,7 @@ namespace BM{
         inline bool isFirst() const{ return page_index == 0; }
 
         // @return: whether this page is the last page of the file i.e. page_index == page_num - 1
-        inline bool isLast() const noexcept { return page_index == file->page_num - 1; }
+        inline bool isLast() const noexcept { return page_index == file.page_num - 1; }
 
         Page(): is_open(false), dirty(false), pinned(false) {}
         ~Page();

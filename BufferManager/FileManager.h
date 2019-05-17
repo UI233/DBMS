@@ -15,7 +15,8 @@ namespace BM{
         std::fstream stream;
         std::string path;
         unsigned int page_num; // the number of pages in the file
-        FileManager() = delete;
+        void init(const std::string &path);
+        FileManager() = default;
         FileManager(const std::string &path);
         ~FileManager() = default;
     };

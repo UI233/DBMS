@@ -56,6 +56,7 @@ namespace BM{
     }
 
     class BufferManager{
+        //friend class Page;
     public:
         using Flag = decltype(std::ios::in);
         BufferManager(/* args */);
@@ -81,40 +82,45 @@ namespace BM{
         // @throw: std::out_of_range("Full buffer") exception if the buffer is full and the replacement fails
         //         std::out_of_range("Out of range") if index excess the number of pages of the file
         //         std::runtime_error("Fail opening file") if the file does not be opened properly
-        // @return: The reference to the specifed page in buffer
-        Page& getPage(const std::string &path, unsigned int index);
+        // @return: The pointer to the specifed page in buffer
+        Page* getPage(const std::string &path, unsigned int index);
 
         // get the next page of file relative to current page
         // @param: a page representing the current position
         // @require: the argument passed to the function should be a valid page
         // @throw: std::out_of_range("Full Buffer") exception if the buffer is full and the replacement fails
-        // @return: The reference to the specifed page in buffer
-        Page& getNextPage(const Page &page);
+        // @return: The pointer to the specifed page in buffer
+        Page* getNextPage(const Page * const page);
         // get the previous page of file relative to current page
-        Page& getPrevPage(const Page &page);
+        Page* getPrevPage(const Page *const page);
         // get the first page of file relative to current page
-        Page& getFirstPage(const Page &page);
+        Page* getFirstPage(const Page * const page);
         // get the last page of file relative to current page
-        Page& getLastPage(const Page &page);
+        Page* getLastPage(const Page *const page);
 
         // create a new page appending to the tail of the file
         // @param: path to the file 
         // @throw: std::out_of_range("Full Buffer") exception if the buffer is full and the replacement fails
         //         std::runtime_error("Fail opening file") if the file does not be opened properly
         // @return: The reference to the specifed page in buffer
-        Page& createPage(const std::string &path);
+        Page* createPage(const std::string &path);
 
+        // close the certain page, throw it out from buffer
+        // if the page is dirty write this page back to disk
+        // @throw: std::invalid_argument("Pinned page") if the page is pinned
+        //         std::invalid_argument("Invalid page") if the page is invalid
+        // @param: a pointer to a specified page
+        void close(Page* page);
         BufferManager(const BufferManager &) = delete;
         BufferManager& operator = (const BufferManager &) = delete;
     private:
-        std::multimap<std::string, unsigned int> file2page;
+        std::map<std::pair<unsigned int, std::string>, unsigned int> file2page;
         std::vector<unsigned int> active_list;
         Page pages[POOLSIZE];
         imp::queue<unsigned int, POOLSIZE> ref_q;
         std::bitset<POOLSIZE> ref_bits;
         unsigned int allocateNewPage();
         unsigned int replace();
-        Page& getPageRelative(unsigned int idx, const std::shared_ptr<imp::FileManager> &fp);
     };
 }
 
