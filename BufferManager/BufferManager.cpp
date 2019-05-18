@@ -2,6 +2,11 @@
 #include <cstring>
 using namespace BM;
 
+bool fileExist(const std::string &path) {
+    std::ifstream checker(path);
+    return checker.good();
+}
+
 BufferManager::BufferManager(){
     active_list.reserve(POOLSIZE);
     ref_bits.reset();
@@ -64,23 +69,27 @@ void BufferManager::deleteFile(const std::string &path) {
 //    return pages + idx;
 //}
 
-Page* BufferManager::getNextPage(const Page *const page) {
-    if (page->isLast())
+Page* BufferManager::getNextPage(Page * page) {
+    if (page->isLast()) {
+        page->pinned = true;
         return const_cast<Page*>(page);
+    }
     return getPage(page->file.path, page->page_index + 1);
 }
 
-Page* BufferManager::getPrevPage(const Page *const page) {
-    if (page->isFirst())
+Page* BufferManager::getPrevPage(Page *page) {
+    if (page->isFirst()) {
+        page->pinned = true;
         return const_cast<Page*>(page);
+    }
     return getPage(page->file.path, page->page_index - 1);
 }
 
-Page* BufferManager::getFirstPage(const Page *const page) {
+Page* BufferManager::getFirstPage(Page *page) {
     return getPage(page->file.path, 0);
 }
 
-Page* BufferManager::getLastPage(const Page *const page) {
+Page* BufferManager::getLastPage(Page *page) {
     std::fstream stream(page->file.path, std::ios::in | std::ios::out | std::ios::binary);
     stream.seekg(0, stream.end);
     unsigned int page_num = stream.tellg() / PAGESIZE;
@@ -95,15 +104,19 @@ Page* BufferManager::createPage(const std::string &path) {
     if (idx > POOLSIZE)
         throw std::out_of_range("Full buffer");
 
+    bool exist = fileExist(path);
     pages[idx].init(path, 0);
     auto& fs = pages[idx].file.stream;
     auto& pn = pages[idx].file.page_num;
     if (!fs.good())
         throw std::runtime_error("Fail opening file");
-    fs.seekp(0, fs.end);
-    fs.write((char*)&(pages[0].data[0]), PAGESIZE);
-    ++pn;
-    file2page.insert(std::make_pair(PageInfo(pn, path), idx));
+    if (exist) {
+        fs.seekp(0, fs.end);
+        fs.write((char*)&(pages[0].data[0]), PAGESIZE);
+        ++pn;
+    }
+    pages[idx].page_index = pn - 1;
+    file2page.insert(std::make_pair(PageInfo(pn - 1, path), idx));
     return pages + idx;
 }
 
@@ -123,18 +136,25 @@ unsigned int BufferManager::allocateNewPage() {
 // Use LRU approximation to replace the buffer
 unsigned int BufferManager::replace() {
     unsigned int idx;
-    unsigned int count = 0;
-    for (idx = ref_q.front(); ref_q.getCap() && (!pages[idx].isValid() || pages[idx].pinned || ref_bits[idx]) && count < 2 * POOLSIZE; ref_q.rotate(), ++count)
+    unsigned int count = 0; // the number of pinned valid pages in the queue
+    for (idx = ref_q.front(); ref_q.getCap() && (!pages[idx].isValid() || pages[idx].pinned || ref_bits[idx]) && count < POOLSIZE;) {
+        // closed page in the queue
         if (!pages[idx].isValid()) {
             ref_q.pop();
             active_list.push_back(idx);
         }
         else {
-            if (!pages[idx].pinned)
-                ref_bits[idx] = 0;
+            if (pages[idx].pinned)
+                ++count;
+            // if a valid page is unpinned and refered
+            else ref_bits[idx] = 0;
         }
 
-    if (active_list.size() == 0)
+        ref_q.rotate();
+        idx = ref_q.front();
+    }
+
+    if (count == POOLSIZE)
         return POOLSIZE + 1u;
 
     if (ref_q.getCap()) {
@@ -154,8 +174,10 @@ unsigned int BufferManager::replace() {
 
 Page* BufferManager::getPage(const std::string &path, unsigned int index) {
     auto itr = file2page.find(std::make_pair(index, path));
-    if (itr != file2page.end())
+    if (itr != file2page.end()) {
+        pages[itr->second].pinned = true;
         return pages + itr->second;
+    }
     // the file is in buffer while the corresponding page is not.
     unsigned int idx = allocateNewPage();
 
@@ -163,6 +185,12 @@ Page* BufferManager::getPage(const std::string &path, unsigned int index) {
         throw std::out_of_range("Full buffer");
 
     pages[idx].init(path, index);
+    auto& fs = pages[idx].file.stream;
+    auto& pn = pages[idx].file.page_num;
+    if (fs.bad())
+        throw std::runtime_error("Fail opening file");
+    if (index >= pn)
+        throw std::out_of_range("Out of range");
     file2page.insert(std::make_pair(PageInfo(index, path), idx));
     return pages + idx;
 }

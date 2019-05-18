@@ -35,6 +35,7 @@ namespace BM{
                     throw std::out_of_range("Empty queue");
                 T v = data[head];
                 head = (head + 1) % MAXSIZE;
+                cap--;
                 return v;
             }
 
@@ -61,6 +62,8 @@ namespace BM{
         using Flag = decltype(std::ios::in);
         BufferManager(/* args */);
         ~BufferManager();
+
+        inline bool isFull() noexcept { return file2page.size() < POOLSIZE; }
 
         // close the file according to the given path
         // all pages of this file in buffer will be flushed away
@@ -90,19 +93,19 @@ namespace BM{
         // @require: the argument passed to the function should be a valid page
         // @throw: std::out_of_range("Full Buffer") exception if the buffer is full and the replacement fails
         // @return: The pointer to the specifed page in buffer
-        Page* getNextPage(const Page * const page);
+        Page* getNextPage(Page * page);
         // get the previous page of file relative to current page
-        Page* getPrevPage(const Page *const page);
+        Page* getPrevPage(Page *page);
         // get the first page of file relative to current page
-        Page* getFirstPage(const Page * const page);
+        Page* getFirstPage(Page * page);
         // get the last page of file relative to current page
-        Page* getLastPage(const Page *const page);
+        Page* getLastPage(Page *page);
 
         // create a new page appending to the tail of the file
         // @param: path to the file 
         // @throw: std::out_of_range("Full Buffer") exception if the buffer is full and the replacement fails
         //         std::runtime_error("Fail opening file") if the file does not be opened properly
-        // @return: The reference to the specifed page in buffer
+        // @return: a pointer to the newly constructed page
         Page* createPage(const std::string &path);
 
         // close the certain page, throw it out from buffer
@@ -111,6 +114,7 @@ namespace BM{
         //         std::invalid_argument("Invalid page") if the page is invalid
         // @param: a pointer to a specified page
         void close(Page* page);
+
         BufferManager(const BufferManager &) = delete;
         BufferManager& operator = (const BufferManager &) = delete;
     private:
