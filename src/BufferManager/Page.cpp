@@ -1,5 +1,6 @@
 #include "Page.h"
 #include <stdexcept>
+#include <cstring>
 using namespace BM;
 
 Page::~Page() {
@@ -26,8 +27,8 @@ void Page::forceWrite() {
 void Page::close() {
     if (!is_open)
         throw std::invalid_argument("Invalid page");
-    if (pinned)
-        throw std::invalid_argument("Pinned page");
+    //if (pinned)
+    //    throw std::invalid_argument("Pinned page");
 
     forceWrite();
     file.stream.close();

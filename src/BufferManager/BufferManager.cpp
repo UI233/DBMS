@@ -34,41 +34,6 @@ void BufferManager::deleteFile(const std::string &path) {
     throw std::runtime_error("Fail deleting file");
 }
 
-//Page* BufferManager::getPage(const std::string &path, unsigned int index) {
-//    auto eq = file2page.equal_range(path);
-//    unsigned int idx;
-//    std::shared_ptr<imp::FileManager> temp;
-//    // the file does not exist
-//    if (eq.first == file2page.end()) {
-//       temp = std::make_shared<imp::FileManager>(path);
-//        if (temp->page_num <= index)
-//            throw std::out_of_range("Out of range");
-//        idx = allocateNewPage();
-//
-//        if (idx > POOLSIZE)
-//            throw std::out_of_range("Full buffer");
-//    }
-//
-//    else {
-//        // the file is in the buffer already
-//        for (auto itr = eq.first; itr != eq.second; ++itr)
-//         if (pages[itr->second].page_index == index)
-//             return pages + itr->second;
-//
-//        // the file is in buffer while the corresponding page is not.
-//        temp = pages[eq.first->second].file;
-//        if (temp->page_num <= index)
-//            throw std::out_of_range("Out of range");
-//        idx = allocateNewPage();
-//
-//        if (idx > POOLSIZE)
-//            throw std::out_of_range("Full buffer");
-//    }
-//    pages[idx].init(temp, index);
-//    file2page.insert(std::make_pair(path, idx));
-//    return pages + idx;
-//}
-
 Page* BufferManager::getNextPage(Page * page) {
     if (page->isLast()) {
         page->pinned = true;

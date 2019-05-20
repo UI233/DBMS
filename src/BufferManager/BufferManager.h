@@ -110,8 +110,7 @@ namespace BM{
 
         // close the certain page, throw it out from buffer
         // if the page is dirty write this page back to disk
-        // @throw: std::invalid_argument("Pinned page") if the page is pinned
-        //         std::invalid_argument("Invalid page") if the page is invalid
+        // @throw: std::invalid_argument("Invalid page") if the page is invalid
         // @param: a pointer to a specified page
         void close(Page* page);
 
