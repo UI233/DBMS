@@ -2,9 +2,11 @@
 cmake_minimum_required(VERSION 3.0)
 project(miniSQL)
 
+set(CMAKE_CXX_STANDARD 17)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 # register subprojects
 add_subdirectory(BufferManager)
-add_subdirectory(CatalogManger)
+add_subdirectory(CatalogManager)
 # add_subdirectory(RecordManager)
 # add_subdirectory(IndexManager)
 # add_subdirectory(Interpreter)

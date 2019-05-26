@@ -7,7 +7,7 @@ bool fileExist(const std::string &path) {
     return checker.good();
 }
 
-BufferManager::BufferManager(){
+BufferManager::BufferManager() {
     active_list.reserve(POOLSIZE);
     ref_bits.reset();
     for(int i = 0; i < POOLSIZE; ++i)

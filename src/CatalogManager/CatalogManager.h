@@ -6,10 +6,16 @@
 
 namespace CM
 {
+    // table_name and attribute name
+    using IndexInfo = std::pair<std::string, std::string>;
+
     class CatalogManager
     {
     private:
         std::map<std::string, Table>  tables;
+        std::map<std::string, IndexInfo> indices;
+        bool modified;
+        void loadFromFile();
     public:
         CatalogManager(/* args */);
         ~CatalogManager();
@@ -23,11 +29,11 @@ namespace CM
         //          or the value of optional variable is empty
         std::optional<Table> getTableByName(const std::string& table_name) const;
 
-        // get the information of table by its index
+        // get the information of  index
         // @param: the index of table
-        // @return: if there exists the table with given index, return corresponding Table class
+        // @return: if there exists the table with given index, return corresponding index information
         //          or the value of optional variable is empty
-        std::optional<Table> getTableByIndex(const std::string& table_index) const;
+        std::optional<IndexInfo> getIndex(const std::string& table_index) const;
 
         // check whether the table with given name exists
         // @param: the name of table need to be checked
@@ -35,11 +41,11 @@ namespace CM
         //          false otherwise
         bool checkTableByName(const std::string& table_name) const;
 
-        // check whether the table with given index exists
+        // check whether the index exists
         // @param: the index of table need to be checked
-        // @return: true if such table exists
+        // @return: true if such index exists
         //          false otherwise
-        bool checkTableByIndex(const std::string& table_index) const;
+        bool checkIndex(const std::string& table_index) const;
 
         // create table by giving its name and schema
         // @param: the name of table and a Table variable containing its schema
@@ -50,6 +56,13 @@ namespace CM
         // @param: the name of table
         // @throw: std::invalid_argument("No such table") if there doesn't exist the table with given name
         void dropTable(const std::string& table_name);
+
+        // create the index named "index_name" on the column "attr_name" of table "table_name" in Catalog
+        // @param: the name of table, the name of attributes to be indexed and the name of index
+        // @throw: std::invalid_argument("No such table") if the table name is not valid
+        //         std::invalid_argument("Invalid attribute") if the attribute is not available on the table
+        //         std::invalid_argument("Existing index") if the index with given name already exists
+        void createindex(const std::string &table_name, const std::string &attr_name,const std::string &index_name);
     };
 } // namespace CM
 

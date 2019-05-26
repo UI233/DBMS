@@ -1,16 +1,17 @@
 #ifndef TABLE_H
 #define TABLE_H
 #include "common.h"
-#include <vector>
+#include <map>
 class Table
 {
 public:
-    std::vector<std::string> attr_name;
-    std::vector<common::attrtype> attr_types;
+    // the map from attributes' name to its information
+    std::map<std::string, common::attrtype> attrs;
+    std::string primary_key;
     inline unsigned intgetAttrNum() {
-        return attr_name.size();
+        return attrs.size();
     }
-    Table(/* args */) {}
-    ~Table() {}
+    Table(/* args */) = default;
+    ~Table() = default;
 };
 #endif
