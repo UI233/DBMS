@@ -4,6 +4,7 @@ project(miniSQL)
 
 set(CMAKE_CXX_STANDARD 17)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
+aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/API API)
 # register subprojects
 add_subdirectory(BufferManager)
 add_subdirectory(CatalogManager)
@@ -22,4 +23,4 @@ find_library(CM_LIB CatalogManager ${CMAKE_CURRENT_LIST_DIR}/lib NO_DEFAULT_PATH
 
 # Executable
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_LIST_DIR}/bin)
-# add_executable(minSQL main.cpp)
+# add_executable(minSQL ${API} main.cpp)
