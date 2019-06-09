@@ -88,6 +88,11 @@ namespace BM{
         // @return: The pointer to the specifed page in buffer
         Page* getPage(const std::string &path, unsigned int index);
 
+        // query the size of file(in number of pages) without reading it into buffer
+        // @param: the path to a specified file
+        // @return: the number of pages in this file
+        unsigned int fileSize(const std::string &path);
+
         // get the next page of file relative to current page
         // @param: a page representing the current position
         // @require: the argument passed to the function should be a valid page
