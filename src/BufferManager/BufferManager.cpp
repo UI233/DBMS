@@ -7,7 +7,7 @@ bool fileExist(const std::string &path) {
     return checker.good();
 }
 
-BufferManager::BufferManager(){
+BufferManager::BufferManager() {
     active_list.reserve(POOLSIZE);
     ref_bits.reset();
     for(int i = 0; i < POOLSIZE; ++i)
@@ -135,6 +135,15 @@ unsigned int BufferManager::replace() {
     active_list.pop_back();
 
     return idx;
+}
+
+unsigned int BufferManager::fileSize(const std::string &path) {
+    std::fstream stream(path, std::ios::in | std::ios::out | std::ios::binary);
+    stream.seekg(0, stream.end);
+    if (!stream.good())
+        return 0u;
+    unsigned int page_num = stream.tellg() / PAGESIZE;
+    return page_num;
 }
 
 Page* BufferManager::getPage(const std::string &path, unsigned int index) {
