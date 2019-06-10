@@ -8,6 +8,12 @@ BM::BufferManager& API::getBM() {
     return api->buffer_manager;
 }
 
+CM::CatalogManager& API::getCM() {
+    if (!api)
+        init();
+    return api->catalog_manager;
+}
+
 void API::init() {
     if (!api)
         api = new API();

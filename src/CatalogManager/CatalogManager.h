@@ -17,6 +17,7 @@ namespace CM
         bool modified;
         void loadFromFile();
     public:
+        CatalogManager(const CatalogManager &) = delete;
         CatalogManager(/* args */);
         ~CatalogManager();
 
