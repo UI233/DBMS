@@ -10,7 +10,7 @@ CatalogManager::~CatalogManager() {
         forceWrite();
 }
 
-CatalogManager::CatalogManager(/* args */): modified(false) {}
+CatalogManager::CatalogManager(/* args */): modified(false) {loadFromFile();}
 
 std::optional<Table> CatalogManager::getTableByName(const std::string& table_name) const {
     if(!tables.count(table_name))
@@ -66,7 +66,7 @@ void CatalogManager::forceWrite() {
         writeString(meta, table.second.primary_key);
         unsigned char attr_sz = table.second.attrs.size();
         meta.write((char*)(&attr_sz), 1);
-
+        // Attributes should be in order
         unsigned int unique_bytes = attr_sz % 8 == 0 ? attr_sz / 8 : attr_sz / 8 + 1;
         std::unique_ptr<char[]> uniques(new char[unique_bytes]);
 
@@ -79,7 +79,7 @@ void CatalogManager::forceWrite() {
                 unsigned int bias = i % 8u;
 
                 if(attr.second.unique)
-                    uniques[num] |= 0xA0u >> bias;
+                    uniques[num] |= 0x80u >> bias;
             }
         }
         meta.write(uniques.get(), unique_bytes);
@@ -108,11 +108,12 @@ void CatalogManager::loadFromFile() {
 
     // read the table definition
     std::ifstream meta(meta_file, std::ios::binary);
-    meta.seekg(meta.end);
+    meta.seekg(0, meta.end);
     int size = meta.tellg();
-    meta.seekg(meta.beg);
+    meta.seekg(0, meta.beg);
     std::unique_ptr<char[]> raw_data(new char[size]);
     meta.read(raw_data.get(), size);
+    meta.close();
 
     std::vector<bool> uniques;
     for(unsigned int ptr = 0; ptr < size;) {
@@ -154,16 +155,16 @@ void CatalogManager::loadFromFile() {
         uniques.clear();
     }
 
-    meta.close();
 
     // read the index file
     static const std::string meta_index("index.ix");
     meta.open(meta_index, std::ios::binary);
-    meta.seekg(meta.end);
+    meta.seekg(0, meta.end);
     size = meta.tellg();
-    meta.seekg(meta.beg);
+    meta.seekg(0, meta.beg);
     raw_data.reset(new char[size]);
     meta.read(raw_data.get(), size);
+    meta.close();
 
     for(unsigned int ptr = 0; ptr < size;) {
         std::string index_name(raw_data.get() + ptr);
@@ -177,8 +178,6 @@ void CatalogManager::loadFromFile() {
 
         indices.insert(std::make_pair(index_name, IndexInfo(table_name, attr_name)));
     }
-
-    meta.close();
 }
 
 void CatalogManager::createindex(const std::string &table_name, const std::string &attr_name,const std::string &index_name) {
@@ -192,6 +191,6 @@ void CatalogManager::createindex(const std::string &table_name, const std::strin
     if (!table_itr->second.attrs.count(attr_name))
         throw std::invalid_argument("Invalid attribute");
 
-    modified = true;
     indices.insert(std::make_pair(index_name, IndexInfo(table_name, attr_name)));
+    modified = true;
 }
