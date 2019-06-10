@@ -6,243 +6,93 @@
 #define DBMS_BPTREE_H
 
 
-#include <iostream>
 #include <vector>
 #include <string>
+#include "BPTreeElement.h"
 
 using namespace std;
 
-template<typename T>
-class BPTreeNode {
+class BPTree
+
+{
 public:
-    BPTreeNode() = default;
 
-    BPTreeNode(int degree, bool isLeaf);
+    // Create B+ tree file
+    static void createFile(string _fileName, int _keyLength, int _order = -1);
 
-    ~BPTreeNode() {}
+    // Constructor
+    BPTree(string _fileName);
 
-    bool search(const T &key, int &index) const;
-
-    BPTreeNode *split(T &key);
-
-    int add(const T &key);
-
-    int add(const T &key, int offset);
-
-    void removeAt(int index);
-
-    bool isRoot() const { return parent == nullptr; }
-
-    bool isLeaf;
-    int degree, cnt;
-    BPTreeNode *parent, *sibling;
-    vector <T> keys;
-    vector<int> keyOffset;
-    vector<BPTreeNode<T> *> children;
-
-    void debug(int id) {
-        cout << "Keys [" << id << "]: ";
-        for (int i = 0; i < this->cnt; i++) {
-            cout << keys[i] << " ";
-        }
-        cout << endl;
-    }
-
-private:
-    bool binarySearch(const T &key, int &index) const;
-};
-
-template<typename T>
-BPTreeNode<T>::BPTreeNode(int degree, bool isLeaf) : degree(degree), isLeaf(isLeaf), cnt(0), parent(nullptr),
-                                                     sibling(nullptr) {
-    children.resize(degree + 1);
-    keys.resize(degree);
-    keyOffset.resize(degree);
-}
-
-template<typename T>
-bool BPTreeNode<T>::search(const T &key, int &index) const {
-}
-
-template<typename T>
-bool BPTreeNode<T>::binarySearch(const T &key, int &index) const {
-
-}
-
-template<typename T>
-BPTreeNode<T> *BPTreeNode<T>::split(T &key) {
-
-}
-
-template<typename T>
-int BPTreeNode<T>::add(const T &key) {
-
-}
-
-template<typename T>
-int BPTreeNode<T>::add(const T &key, int offset) {
-
-}
-
-template<typename T>
-void BPTreeNode<T>::removeAt(int index) {
-
-}
-
-template<typename T>
-struct NodeSearchParse {
-    int index;
-    BPTreeNode<T> *node;
-};
-
-template<typename T>
-class BPTree {
-public:
-    typedef BPTreeNode<T> *TreeNode;
-
-    BPTree(string fileName, int sizeofKey, int degree);
-
+    // Destructor
     ~BPTree();
 
-    TreeNode getHeadNode() const { return head; }
+    // Find value of key
+    int find(unsigned char* _key);
 
-    int find(const T &key);
+    // Add key-value pair. Return true if success
+    bool add(unsigned char* _key, int _value);
 
-    NodeSearchParse<T> findNode(const T &key);
+    // Remove key-value pair. Return true if success
+    bool remove(unsigned char* _key);
 
-    bool insert(const T &key, int offset);
-
-    bool remove(const T &key);
+#ifdef DEBUG
+    // Print tree structure
+    void debugPrint();
+#endif
 
 private:
+
+    // States
+    static const int BPTREE_FAILED;
+    static const int BPTREE_NORMAL;
+    static const int BPTREE_ADD;
+    static const int BPTREE_REMOVE;
+    static const int BPTREE_CHANGE;
+
+    // Order of tree
+    int order;
+
+    // Length of each key
+    int length;
+
+    // Total number of nodes
+    int nodeCount;
+
+    // Block id of root
+    int root;
+
+    // First empty block in file
+    int firstEmpty;
+
+    // Binary file name
     string fileName;
-    TreeNode root, head;
-    int sizeofKey, level, keyCount, nodeCount, degree;
 
-    void initBPTree();
+    // Key-value to maintain
+    unsigned char* key;
+    int value;
 
-    bool findKeyFromNode(TreeNode node, const T &key, NodeSearchParse<T> &res);
+    // Recursive function for finding value
+    int find(int id);
 
-    void cascadeInsert(TreeNode node);
+    // Recursive function for adding key-value pair
+    int add(int id);
 
-    bool cascadeDelete(TreeNode node);
+    // Recursive function for deleting key-value pair
+    int remove(int id, int sibId, bool leftSib, unsigned char* parentKey);
 
-    bool deleteBranchLL(TreeNode node, TreeNode parent, TreeNode sibling, int index);
+    // Get first empty block id
+    int getFirstEmpty();
 
-    bool deleteBranchLR(TreeNode node, TreeNode parent, TreeNode sibling, int index);
+    // Remove block in file
+    void removeBlock(int id);
 
-    bool deleteBranchRL(TreeNode node, TreeNode parent, TreeNode sibling, int index);
+    // Update header information
+    void updateHeader();
 
-    bool deleteBranchRR(TreeNode node, TreeNode parent, TreeNode sibling, int index);
-
-    bool deleteLeafLL(TreeNode node, TreeNode parent, TreeNode sibling, int index);
-
-    bool deleteLeafLR(TreeNode node, TreeNode parent, TreeNode sibling, int index);
-
-    bool deleteLeafRL(TreeNode node, TreeNode parent, TreeNode sibling, int index);
-
-    bool deleteLeafRR(TreeNode node, TreeNode parent, TreeNode sibling, int index);
-
-    void debug(TreeNode node, int id) {
-        node->debug(id);
-        if (!node->isLeaf) {
-            for (int i = 0; i <= node->cnt; i++) {
-                debug(node->children[i], i);
-            }
-        }
-    }
+#ifdef DEBUG
+    // Recursive function for tree structure printing
+    void debugPrint(int id);
+#endif
 };
-
-template<typename T>
-BPTree<T>::BPTree(string fileName, int sizeofKey, int degree) : fileName(fileName), sizeofKey(sizeofKey),
-                                                                degree(degree), keyCount(0), nodeCount(0), level(0),
-                                                                root(
-                                                                        nullptr), head(nullptr) {
-    initBPTree();
-}
-
-template<typename T>
-BPTree<T>::~BPTree() {
-
-}
-
-template<typename T>
-void BPTree<T>::initBPTree() {
-}
-
-template<typename T>
-bool BPTree<T>::findKeyFromNode(TreeNode node, const T &key, NodeSearchParse<T> &res) {
-
-}
-
-template<typename T>
-int BPTree<T>::find(const T &key) {
-
-}
-
-template<typename T>
-NodeSearchParse<T> BPTree<T>::findNode(const T &key) {
-
-}
-
-template<typename T>
-bool BPTree<T>::insert(const T &key, int offset) {
-
-}
-
-template<typename T>
-void BPTree<T>::cascadeInsert(BPTree::TreeNode node) {
-
-}
-
-template<typename T>
-bool BPTree<T>::remove(const T &key) {
-
-}
-
-template<typename T>
-bool BPTree<T>::cascadeDelete(BPTree::TreeNode node) {
-
-}
-
-template<typename T>
-bool BPTree<T>::deleteBranchLL(BPTree::TreeNode node, BPTree::TreeNode parent, BPTree::TreeNode sibling, int index) {
-
-}
-
-template<typename T>
-bool BPTree<T>::deleteBranchLR(BPTree::TreeNode node, BPTree::TreeNode parent, BPTree::TreeNode sibling, int index) {
-
-}
-
-template<typename T>
-bool BPTree<T>::deleteBranchRL(BPTree::TreeNode node, BPTree::TreeNode parent, BPTree::TreeNode sibling, int index) {
-
-}
-
-template<typename T>
-bool BPTree<T>::deleteBranchRR(BPTree::TreeNode node, BPTree::TreeNode parent, BPTree::TreeNode sibling, int index) {
-
-}
-
-template<typename T>
-bool BPTree<T>::deleteLeafLL(BPTree::TreeNode node, BPTree::TreeNode parent, BPTree::TreeNode sibling, int index) {
-
-}
-
-template<typename T>
-bool BPTree<T>::deleteLeafLR(BPTree::TreeNode node, BPTree::TreeNode parent, BPTree::TreeNode sibling, int index) {
-
-}
-
-template<typename T>
-bool BPTree<T>::deleteLeafRL(BPTree::TreeNode node, BPTree::TreeNode parent, BPTree::TreeNode sibling, int index) {
-
-}
-
-template<typename T>
-bool BPTree<T>::deleteLeafRR(BPTree::TreeNode node, BPTree::TreeNode parent, BPTree::TreeNode sibling, int index) {
-
-}
 
 #endif //DBMS_BPTREE_H
