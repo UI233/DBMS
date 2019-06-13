@@ -7,6 +7,7 @@
 #include <map>
 #include "BufferManager.h"
 #include "CatalogManager.h"
+#include "API.h"
 
 namespace RM{
 
@@ -19,7 +20,7 @@ namespace RM{
     class RecordManager
     {
     public:
-        RecordManager() : bm(bm), cm(cm) {}
+        RecordManager(): {}
         ~RecordManager() {}
 
         int getRecordLength(const std::string &tableName);
@@ -52,8 +53,7 @@ namespace RM{
         ); 
 
     private:
-        BM::BufferManager *bm;
-        CM::CatalogManager *cm;
+
         BM::Page *page;
 
         // Table name
