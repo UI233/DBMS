@@ -3,7 +3,7 @@
 using namespace RM;
 
 int RecordManager::getRecordLength(const std::string &tableName) {
-    std::optional<Table> table = cm->getTableByName(tableName);
+    std::optional<Table> table = API::getCM().getTableByName(tableName);
     int len = 0;
     if (table) {
         for (const auto &attr: table->attrs) {
@@ -100,9 +100,9 @@ bool RecordManager::removeRecord(const std::string tableName, const std::vector<
 
 bool RecordManager::createTable(const std::string &tableName) {
     std::string tableFileStr = tableFile(tableName);
-    page = bm->createPage(tableFileStr);
+    page = API::getBM().createPage(tableFileStr);
 
-    // Add an extra invalidity bit
+    // Add an extra invalidity-bit
     recordLength = getRecordLength(tableName) + 1;
     page->modify((char*)&recordLength, 0, sizeof(int));
     recordCount = 0;
@@ -116,7 +116,7 @@ bool RecordManager::createTable(const std::string &tableName) {
 
 bool RecordManager::dropTable(const std::string &tableName) {
     std::string tableFileStr = tableFile(tableName);
-    bm->deleteFile(tableFileStr);
+    API::getBM().deleteFile(tableFileStr);
     return true;
 }
 
@@ -126,9 +126,21 @@ bool RecordManager::checkRecord(
     const std::vector<std::string> &operand
 ) {
     using namespace std;
-    std::optional<Table> table = cm->getTableByName(tableName);
+    std::optional<Table> table = API::getCM().getTableByName(tableName);
     if (!table)
         return false;
+
+    std::map<std::string, int> attrPos;
+    int offset = 0;
+    for (const auto &attr: table->attrs) {
+        attrPos.insert(make_pair(attr.first, offset));
+        if (attr.second.type == common::attrtype::SQL_INT)
+            offset += sizeof(int);
+        if (attr.second.type == common::attrtype::SQL_CHAR)
+            offset += sizeof(char) * attr.second.size;
+        if (attr.second.type == common::attrtype::SQL_FLOAT)
+            offset += sizeof(float);
+    }
 
     int condCount = colName.size();
 
@@ -136,22 +148,25 @@ bool RecordManager::checkRecord(
     {
         char dataOut[MAX_VALUE_LENGTH];
         common::attrtype::SQL_TYPE type = table->attrs.find(colName[i])->second.type;
-        // ---- 还没写好！需要知道属性的顺序！ ----
+
         if (type == common::attrtype::SQL_CHAR)
         {
             // Char type
+            memcpy(dataOut, record.c_str + attrPos.find(colName[i])->second, sizeof(char) * table->attrs.find(colName[i])->second.size);
             if (!charCmp(dataOut, operand.at(i).c_str, cond.at(i)))
                 return false;
         }
         else if (type == common::attrtype::SQL_INT)
         {
             // Int type
+            memcpy(dataOut, record.c_str + attrPos.find(colName[i])->second, sizeof(int));
             if (!intCmp(dataOut, operand.at(i).c_str, cond.at(i)))
                 return false;
         }
         else if (type == common::attrtype::SQL_FLOAT)
         {
             // Float type
+            memcpy(dataOut, record.c_str + attrPos.find(colName[i])->second, sizeof(float));
             if (!floatCmp(dataOut, operand.at(i).c_str, cond.at(i)))
                 return false;
         }
@@ -164,7 +179,7 @@ void RecordManager::loadTable(const std::string &tableName) {
     std::string tableFileStr = tableFile(tableName);
     this->tableName = tableName;
 
-    page = bm->getPage(tableFileStr, 0);
+    page = API::getBM().getPage(tableFileStr, 0);
     recordLength = *(reinterpret_cast<int*>(&page->data[0]));
     recordCount = *(reinterpret_cast<int*>(&page->data[4]));
     recordBlockCount = BM::PAGESIZE / recordLength;
@@ -174,7 +189,7 @@ void RecordManager::loadTable(const std::string &tableName) {
 
 void RecordManager::updateHeader() {
     std::string tableFileStr = tableFile(tableName);
-    BM::Page *page = bm->getPage(tableFileStr, 0);
+    BM::Page *page = API::getBM().getPage(tableFileStr, 0);
     page->modify((char*)&recordCount, 4, sizeof(int));
     page->modify((char*)&firstEmpty, 8, sizeof(int));
     page->unpin();
@@ -184,17 +199,16 @@ void RecordManager::loadRecord(int id) {
     std::string tableFileStr = tableFile(tableName);
     ptr = id;
     int pageIndex = ptr / recordBlockCount + 1;
-    int pageNum = bm->fileSize(tableFileStr);
+    int pageNum = API::getBM().fileSize(tableFileStr);
     if (pageIndex < pageNum)
-        page = bm->getPage(tableFileStr, pageIndex);
+        page = API::getBM().getPage(tableFileStr, pageIndex);
     else 
-        page = bm->createPage(tableFileStr);
+        page = API::getBM().createPage(tableFileStr);
     page->unpin();
     bias = ptr % recordBlockCount * recordLength;
 }
 
-int RecordManager::getNextRecord(char* data)
-{
+int RecordManager::getNextRecord(char* data) {
     bool invalid = true;
 
     // Read next valid record
