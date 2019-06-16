@@ -2,6 +2,7 @@
 #define CATALOGMANAGER_H
 #include <map>
 #include <utility>
+#include <optional>
 #include "Table.h"
 
 namespace CM

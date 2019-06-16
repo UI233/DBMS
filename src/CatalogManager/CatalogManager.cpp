@@ -1,4 +1,5 @@
 #include "CatalogManager.h"
+#include <cstring>
 #include <fstream>
 #include <vector>
 #include <memory>
@@ -120,14 +121,16 @@ void CatalogManager::loadFromFile() {
     std::ifstream meta(meta_file, std::ios::binary);
     meta.seekg(0, meta.end);
     int size = meta.tellg();
-    meta.seekg(0, meta.beg);
-    std::unique_ptr<char[]> raw_data(new char[size]);
-    if (size > 0)
+    std::unique_ptr<char[]> raw_data(nullptr);
+    if (size > 0) {
+        meta.seekg(0, meta.beg);
+        raw_data.reset(new char[size]);
         meta.read(raw_data.get(), size);
+    }
     meta.close();
 
     std::vector<bool> uniques;
-    for(unsigned int ptr = 0; ptr < size;) {
+    for(int ptr = 0; ptr < size;) {
         // the format of table file is in the document
         std::string table_name(raw_data.get() + ptr);
         Table table;
@@ -173,13 +176,14 @@ void CatalogManager::loadFromFile() {
     meta.open(meta_index, std::ios::binary);
     meta.seekg(0, meta.end);
     size = meta.tellg();
-    meta.seekg(0, meta.beg);
-    raw_data.reset(new char[size]);
-    if (size > 0)
+    if (size > 0) {
+        meta.seekg(0, meta.beg);
+        raw_data.reset(new char[size]);
         meta.read(raw_data.get(), size);
+    }
     meta.close();
 
-    for(unsigned int ptr = 0; ptr < size;) {
+    for(int ptr = 0; ptr < size;) {
         std::string index_name(raw_data.get() + ptr);
         ptr += index_name.length() + 1;
 
