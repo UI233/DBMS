@@ -7,8 +7,12 @@
 #include "BPTree.h"
 #include "IndexManager.h"
 #include <exception>
-
+#include "../CatalogManager/CatalogManager.h"
+#include "../BufferManager/BufferManager.h"
+#include "../API/API.h"
+using namespace CM;
 using namespace std;
+using namespace IM;
 // Find key in index. Return record id
 int IndexManager::find(string indexName, unsigned char* key)
 {
@@ -50,25 +54,32 @@ bool IndexManager::remove(string indexName, unsigned char* key)
     return true;
 }
 //Todo: complete and test the left functions
-/*// Create index. Return true if success
+// Create index. Return true if success
 bool IndexManager::createIndex(string indexName)
 {
-    CatalogManager* manager = MiniSQL::getCatalogManager();
-    Index* index = manager->getIndex(indexName);
-    if (index == NULL)
-        return false;
-    Table* table = manager->getTable(index->getTableName());
-    if (table == NULL)
-        return false;
-    int keyLength = Utils::getTypeSize(table->getType(index->getColName()));
 
+    CatalogManager& manager = API::getCM();
+    cout<<"manager"<<endl;
+
+    optional<IndexInfo> index = manager.getIndex(indexName);
+    if (!index)
+        return false;
+    optional<Table> table = manager.getTableByName(index->first);
+    if (!table)
+        return false;
+    cout<<"table"<<endl;
+    common::attrtype type=table->attrs[index->second];
+    int keyLength=type.getSize();
+    cout<<"create file"<<endl;
     BPTree::createFile("index/" + indexName, keyLength);
     return true;
 }
 
-// Drop index. Return true if success
+// Drop index. Return true if success,l,
 bool IndexManager::dropIndex(string indexName)
 {
-    Utils::deleteFile("index/" + indexName);
+    using namespace BM;
+    BufferManager &bm=API::getBM();
+    bm.deleteFile("index/" + indexName);
     return true;
-}*/
+}

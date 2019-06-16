@@ -80,19 +80,19 @@ bool BPTree::add(unsigned char* _key, int _value)
     value = _value;
     cout<<root<<endl;
     int res = root < 0 ? BPTREE_ADD : add(root);
-    cout<<"cccp"<<endl;
+  //  cout<<"cccp"<<endl;
     if (res == BPTREE_ADD)
     {
         // Create new root
         int newRoot = getFirstEmpty();
         cout<<newRoot<<endl;
-        cout<<"Before new"<<endl;
+     //   cout<<"Before new"<<endl;
         BPTreeElement* node = new BPTreeElement(fileName, newRoot, length, root < 0, root < 0 ? -1 : root);
-        cout<<"After new"<<endl;
+     //   cout<<"After new"<<endl;
         node->insert(0, key, value);
-        cout<<"After insert"<<endl;
+      //  cout<<"After insert"<<endl;
         delete node;
-        cout<<"After delete"<<endl;
+      //  cout<<"After delete"<<endl;
         root = newRoot;
     }
     updateHeader();
