@@ -32,4 +32,6 @@ void execQuery();
 /*run file to execute every command in it*/
 void execFile(const std::string &file_name);
 
+
+void createQueryToTable(const CreateTableQuery * query,Table &tb);
 #endif 

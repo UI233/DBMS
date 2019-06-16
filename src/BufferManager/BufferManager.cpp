@@ -78,6 +78,7 @@ Page* BufferManager::createPage(const std::string &path) {
     if (exist) {
         fs.seekp(0, fs.end);
         fs.write((char*)&(pages[0].data[0]), PAGESIZE);
+        fs.flush();
         ++pn;
     }
     pages[idx].page_index = pn - 1;

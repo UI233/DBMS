@@ -107,20 +107,14 @@ void doParse()
     if (isExit)
     {
         std::cout << "Byeヽ(￣▽￣)ﾉ\n";
-
-/*！！调用函数的名字可能还不对*/
-
-       /* auto cm = Api::ApiHelper::getApiHelper()->getCatalogManager();
+		/*！！调用函数的名字可能还不对*/
+       /* auto CM = Api::ApiHelper::getApiHelper()->getCatalogManager();
         auto bm = Api::ApiHelper::getApiHelper()->getBufferManager();
-        cm->Flush();
+        CM->Flush();
         bm->flushAllBlocks();
         */
         exit(0);
     }
-    /*invalid input*/
-
-/*需要检查错误信息并输出*/
-
     if (query == nullptr)
     {
         return;
@@ -131,16 +125,22 @@ void doParse()
     }
 }
 
+//semantic test
 void execQuery()
 {
+	auto CM=new cm::catalogManager();
+	bool isPassSemanticCheck=true;
     switch(query->getQueryType())
     {
         case QueryType::INSERT:
 		{	auto insert_query = dynamic_cast<InsertQuery *>(query);
 			if (insert_query)
 			{
-				auto insert_count = Api::insert(insert_query->table_name, insert_query->value_list);
-
+				isPassSemanticCheck=check_insert(insert_query->table_name, insert_query->value_list);
+				if(isPassSemanticCheck)
+				{
+					auto insert_count = Api::insert(insert_query->table_name, insert_query->value_list);
+				}
 				delete insert_query;
 				query = nullptr;
 				return;
@@ -152,8 +152,12 @@ void execQuery()
 			auto delete_query = dynamic_cast<DeleteQuery *>(query);
 			if (delete_query)
 			{
-				Api::delete_operation(delete_query->table_name, delete_query->condition_list);
 
+				isPassSemanticCheck=check_delete(delete_query->table_name, delete_query->condition_list);
+				if(isPassSemanticCheck)
+				{
+					Api::delete_operation(delete_query->table_name, delete_query->condition_list);
+				}
 				delete delete_query;
 				query = nullptr;
 				return;
@@ -165,10 +169,11 @@ void execQuery()
 			auto select_query = dynamic_cast<SelectQuery *>(query);
 			if (select_query)
 			{
-
-				auto r = Api::select(select_query->table_name,
-					select_query->condition_list);
-
+				isPassSemanticCheck=check_select(select_query->table_name,select_query->condition_list)
+				if(isPassSemanticCheck)
+				{
+					auto r = Api::select(select_query->table_name,select_query->condition_list);
+				}
 				delete select_query;
 				query = nullptr;
 				return;
@@ -178,13 +183,24 @@ void execQuery()
           
         case QueryType::CREATE_TABLE:
 		{
+
 			auto create_table_query = dynamic_cast<CreateTableQuery *>(query);
 			if (create_table_query)
 			{
-				auto r = Api::create_table(create_table_query->table_name,
+				try
+				{	
+					//check
+					Table tb = new Table();
+					createQueryToTable(create_table_query,tb);
+					CM.createTable(create_table_query->table_name, tb);
+					//execute
+					auto r = Api::create_table(create_table_query->table_name,
 					create_table_query->attr_list,
 					create_table_query->primary_key_name);
 
+				}
+				catch()
+				
 				delete create_table_query;
 				query = nullptr;
 				return;
@@ -196,8 +212,18 @@ void execQuery()
 			auto create_index_query = dynamic_cast<CreateIndexQuery *>(query);
 			if (create_index_query)
 			{
-				auto r = Api::create_index(create_index_query->table_name, create_index_query->attr_name, create_index_query->index_name);
 
+				try
+				{
+					CM.createindex(create_index_query->table_name, create_index_query->attr_name, create_index_query->index_name);
+					auto r = Api::create_index(create_index_query->table_name, create_index_query->attr_name, create_index_query->index_name);
+
+	/*鬼知道这边要不要输出*/				std::cout<<"Successfully create index."<<std::endl;
+				}
+				catch(exception& e)
+				{
+					std::cerr<<e.what()<<std::endl;
+				}
 				delete create_index_query;
 				query = nullptr;
 				return;
@@ -210,8 +236,17 @@ void execQuery()
 			auto drop_table_query = dynamic_cast<DropTableQuery *>(query);
 			if (drop_table_query)
 			{
-				auto r = Api::drop_table(drop_table_query->table_name);
+				try
+				{
+					CM.dropTable(drop_table_query->table_name);
+					auto r = Api::drop_table(drop_table_query->table_name);
 
+				}
+				catch(exception& e)
+				{
+					std::cerr<<e.what()<<std::endl;
+				}
+				
 				delete drop_table_query;
 				query = nullptr;
 				return;
@@ -224,7 +259,16 @@ void execQuery()
 			auto drop_index_query = dynamic_cast<DropIndexQuery *>(query);
 			if (drop_index_query)
 			{
-				auto r = Api::drop_index(drop_index_query->index_name);
+				/*true if such index exist*/
+				isPassSemanticCheck=CM.checkIndex(drop_index_query->index_name);
+				if(isPassSemanticCheck)
+				{
+					auto r = Api::drop_index(drop_index_query->index_name);
+				}
+				else
+				{
+					std::cerr<<"There's no index with this name!"<<std::endl;
+				}
 
 				delete drop_index_query;
 				query = nullptr;
@@ -258,4 +302,19 @@ int main(int argc, char *argv[])
 	Interpreter IM;
 	IM.read_command_loop();
 	return 0;
+}
+
+void createQueryToTable(const CreateTableQuery * query,Table &tb)
+{
+	tb.primary_key=query->primary_key_name;
+	auto newattr=new common::attrtype();
+	unsigned int order=0;
+	for(auto &attr:attr_list)
+	{
+		newattr.type=(int)(attr.type);
+		newattr.unique=attr.unique;
+		newattr.size=attr.charSize;
+		newattr.order=(order++);
+		tb.attrs.insert(pair<std::string, common::attrtype>(attr.attrName, newattr));
+	}
 }

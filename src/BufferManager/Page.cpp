@@ -20,6 +20,7 @@ void Page::forceWrite() {
     write.seekp(page_index * PAGESIZE, write.beg);
     auto before = write.tellp();
     write.write((char *)&data[0], PAGESIZE);
+    write.flush();
     if (!write.good() || write.tellp() - before != PAGESIZE)
         throw std::runtime_error("Fail writting back");
 }

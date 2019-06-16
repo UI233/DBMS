@@ -25,6 +25,8 @@ namespace RM{
 
         int getRecordLength(const std::string &tableName);
 
+        std::string getRawData(const std::string &tableName, int id);
+
         // Select record from table. Return number of records selected
         int selectRecord(
             const std::string &tableName, const std::vector<std::string> &colName,
