@@ -26,9 +26,12 @@ int IndexManager::find(string indexName, unsigned char* key)
 // Insert key into index. Return true if success
 bool IndexManager::insert(string indexName, unsigned char* key, int value)
 {
+
     BPTree* tree = new BPTree("index/" + indexName);
-
-
+    int preCheck=tree->find(key);
+    if (preCheck!=-1){
+        throw std::runtime_error("ERROR: [IndexManager::insert] Duplicate Key in index.");
+    }
    // std::cout<<"Complete 1"<<std::endl;
     if (!tree->add(key, value))
     {
