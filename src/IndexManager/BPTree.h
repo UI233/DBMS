@@ -49,7 +49,7 @@ private:
     static const int BPTREE_REMOVE;
     static const int BPTREE_CHANGE;
 
-    // Order of tree
+    // Order of BPTree
     int order;
 
     // Length of each key

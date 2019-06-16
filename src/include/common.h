@@ -1,6 +1,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 #include <set>
+#include <string>
 
 namespace common
 {
@@ -21,12 +22,17 @@ namespace common
         // if type == SQL_CHAR it has such attribute to indicate its maximal length
         unsigned int size; 
         unsigned char order;
+
         inline size_t getSize() {
             if (type == SQL_CHAR)
                 return sizeof(char) * size;
             else return sizeof(float);
         }
     };
+
+    inline std::string getIndexFile(const std::string &index_name, const std::string& table_name, const std::string& attr_name) {
+        return index_name + "_" + table_name + "_" + attr_name;
+    }
 } // namespace common
 
 #endif

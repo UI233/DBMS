@@ -17,5 +17,5 @@ aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Interpreter interpreter)
 # Executable
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_LIST_DIR}/bin)
-add_executable(${PROJECT_NAME} ${api} ${buffer} ${index} ${catalog} ${interpreter} ${record} main.cpp)
+add_executable(${PROJECT_NAME} ${api} ${buffer} ${index} ${catalog} ${interpreter} ${record} test.cpp)
 # add_executable(minSQL ${API} main.cpp)

@@ -1,7 +1,8 @@
 #ifndef SEMANTICCHECK_H
 #define SEMANTICCHECK_H
 #include "../CatalogManager/CatalogManager.h"
-
+#include <string>
+#include <vector>
 /*insert:
 check the table_name
 check the type of attribute (length of string is enough),
