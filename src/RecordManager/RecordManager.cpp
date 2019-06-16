@@ -56,7 +56,7 @@ int RecordManager::insertRecord(const std::string &tableName, const std::string 
         // Update total number of records
         recordCount++;
 
-    page->modify((char*)data.c_str, bias, bias + recordLength - 1);
+    page->modify((char*)data.c_str(), bias, bias + recordLength - 1);
     char zero = 0;
     page->modify(&zero, bias + recordLength - 1, bias + recordLength);
     updateHeader();
@@ -152,22 +152,22 @@ bool RecordManager::checkRecord(
         if (type == common::attrtype::SQL_CHAR)
         {
             // Char type
-            memcpy(dataOut, record.c_str + attrPos.find(colName[i])->second, sizeof(char) * table->attrs.find(colName[i])->second.size);
-            if (!charCmp(dataOut, operand.at(i).c_str, cond.at(i)))
+            memcpy(dataOut, record.c_str() + attrPos.find(colName[i])->second, sizeof(char) * table->attrs.find(colName[i])->second.size);
+            if (!charCmp(dataOut, operand.at(i).c_str(), cond.at(i)))
                 return false;
         }
         else if (type == common::attrtype::SQL_INT)
         {
             // Int type
-            memcpy(dataOut, record.c_str + attrPos.find(colName[i])->second, sizeof(int));
-            if (!intCmp(dataOut, operand.at(i).c_str, cond.at(i)))
+            memcpy(dataOut, record.c_str() + attrPos.find(colName[i])->second, sizeof(int));
+            if (!intCmp(dataOut, operand.at(i).c_str(), cond.at(i)))
                 return false;
         }
         else if (type == common::attrtype::SQL_FLOAT)
         {
             // Float type
-            memcpy(dataOut, record.c_str + attrPos.find(colName[i])->second, sizeof(float));
-            if (!floatCmp(dataOut, operand.at(i).c_str, cond.at(i)))
+            memcpy(dataOut, record.c_str() + attrPos.find(colName[i])->second, sizeof(float));
+            if (!floatCmp(dataOut, operand.at(i).c_str(), cond.at(i)))
                 return false;
         }
     }
