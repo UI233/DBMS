@@ -18,6 +18,15 @@ int RecordManager::getRecordLength(const std::string &tableName) {
     return len;
 }
 
+std::string RecordManager::getRawData(const std::string &tableName, int id) {
+    loadTable(tableName);
+    loadRecord(id);
+    std::string str;
+    str.resize(recordLength);
+    memcpy(&str[0], &page->data[bias], recordLength);
+    return str;
+}
+
 int RecordManager::selectRecord(
             const std::string &tableName, const std::vector<std::string> &colName,
             const std::vector<Condition> &cond, const std::vector<std::string> &operand,
