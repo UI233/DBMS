@@ -20,7 +20,7 @@ namespace RM{
     class RecordManager
     {
     public:
-        RecordManager(): {}
+        RecordManager() {}
         ~RecordManager() {}
 
         int getRecordLength(const std::string &tableName);
@@ -46,7 +46,7 @@ namespace RM{
         bool dropTable(const std::string &tableName);
 
         // Check if record satisfy all conditions
-        bool RecordManager::checkRecord(
+        bool checkRecord(
             const std::string &record, const std::string &tableName,
             const std::vector<std::string> &colName, const std::vector<Condition> &cond,
             const std::vector<std::string> &operand
