@@ -1,6 +1,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 #include <set>
+
 namespace common
 {
     class attrtype
@@ -18,6 +19,11 @@ namespace common
         bool unique;
         // if type == SQL_CHAR it has such attribute to indicate its maximal length
         unsigned int size; 
+        inline size_t getSize() {
+            if (type == SQL_CHAR)
+                return sizeof(char) * size;
+            else return sizeof(float);
+        }
     };
 } // namespace common
 
