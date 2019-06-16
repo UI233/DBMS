@@ -3,6 +3,7 @@
 #include <map>
 #include <utility>
 #include <optional>
+#include <vector>
 #include "Table.h"
 
 namespace CM
@@ -11,13 +12,14 @@ namespace CM
 
     using TableName = std::string;
     using AttributeName = std::string;
-    using IndexInfo = std::pair<TableName, AttributeName>;
+    using IndexName = std::string;
+    using IndexInfo = std::pair<IndexName, AttributeName>;
 
     class CatalogManager
     {
     private:
-        std::map<std::string, Table>  tables;
-        std::map<std::string, IndexInfo> indices;
+        std::map<TableName, Table>  tables;
+        std::multimap<TableName, IndexInfo> indices;
         bool modified;
         void loadFromFile();
     public:
@@ -61,7 +63,8 @@ namespace CM
         // drop specified table from database by giving its name
         // @param: the name of table
         // @throw: std::invalid_argument("No such table") if there doesn't exist the table with given name
-        void dropTable(const std::string& table_name);
+        // @return: all indices' name related to this table
+        std::vector<std::string> dropTable(const std::string& table_name);
 
         // create the index named "index_name" on the column "attr_name" of table "table_name" in Catalog
         // @param: the name of table, the name of attributes to be indexed and the name of index
@@ -69,6 +72,18 @@ namespace CM
         //         std::invalid_argument("Invalid attribute") if the attribute is not available on the table
         //         std::invalid_argument("Existing index") if the index with given name already exists
         void createindex(const std::string &table_name, const std::string &attr_name,const std::string &index_name);
+
+        // get all indices related to this table
+        // @param: the name of the table
+        // @throw: std::invalid_argument("No such table") if the table name is not valid
+        std::vector<std::string> getAllIndices(const std::string& table_name);
+
+        // get the index name related to given attribute's name
+        // @param: the name of the table and attribute's name
+        // @throw: std::invalid_argument("No such index") if no index is attached to this attribute
+        // @return: the index name if there is such a index
+        //          otherwise it returns an empty string
+        std::string getIndexName(const std::string& table_name, const std::string& attr_name);
     };
 } // namespace CM
 

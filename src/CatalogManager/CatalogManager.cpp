@@ -52,13 +52,46 @@ void CatalogManager::createTable(const std::string& table_name, const Table& sch
     modified = true;
 }
 
-void CatalogManager::dropTable(const std::string& table_name) {
+std::vector<std::string> CatalogManager::dropTable(const std::string& table_name) {
+    std::vector<std::string> res;
     auto itr = tables.find(table_name);
     if(itr == tables.end())
         throw std::invalid_argument("No such table");
-    
+
+    auto pr = indices.equal_range(table_name);
+    for (auto itr = pr.first; itr != pr.second; ++itr) {
+        auto file_name = common::getIndexFile(itr->second.first, itr->first, itr->second.second);
+        res.push_back(std::move(file_name));
+        indices.erase(itr);
+    }
+
     modified = true;
     tables.erase(itr);
+
+    return std::move(res);
+}
+
+std::vector<std::string> CatalogManager::getAllIndices(const std::string& table_name) {
+    auto itr = tables.find(table_name);
+    if(itr == tables.end())
+        throw std::invalid_argument("No such table");
+
+    auto pr = indices.equal_range(table_name);
+    std::vector<std::string> res;
+    for (auto itr = pr.first; itr != pr.second; ++itr) {
+        auto file_name = common::getIndexFile(itr->second.first, itr->first, itr->second.second);
+        res.push_back(std::move(file_name));
+    }
+    return std::move(res);
+}
+
+std::string CatalogManager::getIndexName(const std::string& table_name, const std::string& attr_name) {
+    auto pr = indices.equal_range(table_name);
+    for (auto itr = pr.first; itr != pr.second; ++itr)
+        if (itr->second.second == attr_name)
+            return common::getIndexFile(itr->second.first, itr->first, itr->second.second);
+
+    return "";
 }
 
 void CatalogManager::forceWrite() {
@@ -194,7 +227,7 @@ void CatalogManager::loadFromFile() {
         std::string attr_name(raw_data.get() + ptr);
         ptr += attr_name.length() + 1;
 
-        indices.insert(std::make_pair(index_name, IndexInfo(table_name, attr_name)));
+        indices.insert(std::make_pair(table_name, IndexInfo(index_name, attr_name)));
     }
 }
 
