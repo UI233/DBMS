@@ -17,7 +17,7 @@ namespace IM {
         bool remove(string indexName, unsigned char *key);
 
         // Create index. Return true if success
-        bool createIndex(string indexName);
+        bool createIndex(string indexName, string tableName, string attributeName);
 
         // Drop index. Return true if success
         bool dropIndex(string indexName);

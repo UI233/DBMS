@@ -10,6 +10,7 @@
 #include "../CatalogManager/CatalogManager.h"
 #include "../BufferManager/BufferManager.h"
 #include "../API/API.h"
+#include "../include/common.h"
 using namespace CM;
 using namespace std;
 using namespace IM;
@@ -55,23 +56,21 @@ bool IndexManager::remove(string indexName, unsigned char* key)
 }
 //Todo: complete and test the left functions
 // Create index. Return true if success
-bool IndexManager::createIndex(string indexName)
+bool IndexManager::createIndex(string indexName, string tableName, string attributeName)
 {
 
     CatalogManager& manager = API::getCM();
-    cout<<"manager"<<endl;
-
     optional<IndexInfo> index = manager.getIndex(indexName);
     if (!index)
         return false;
-    optional<Table> table = manager.getTableByName(index->first);
+    optional<Table> table = manager.getTableByName(tableName);
     if (!table)
         return false;
     cout<<"table"<<endl;
-    common::attrtype type=table->attrs[index->second];
+    common::attrtype type=table->attrs[attributeName];
     int keyLength=type.getSize();
     cout<<"create file"<<endl;
-    BPTree::createFile("index/" + indexName, keyLength);
+    BPTree::createFile("index/" + common::getIndexFile(indexName, tableName, attributeName)), keyLength);
     return true;
 }
 
