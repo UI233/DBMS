@@ -107,7 +107,7 @@ bool RecordManager::createTable(const std::string &tableName) {
     page->modify((char*)&recordLength, 0, sizeof(int));
     recordCount = 0;
     firstEmpty = -1;
-
+    this->tableName = tableName;
     updateHeader();
     page->unpin();
 
