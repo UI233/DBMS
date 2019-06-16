@@ -38,6 +38,15 @@ void CatalogManager::createTable(const std::string& table_name, const Table& sch
     if(itr != tables.end())
         throw std::invalid_argument("Table already exists");
 
+    // Check the constrain
+    if (schema.attrs.size() > 32)     
+        throw std::invalid_argument("Too many attributes in the table.");
+    else {
+        for (auto pair: schema.attrs)
+            if (pair.second.type == common::attrtype::SQL_CHAR && pair.second.size >= 256)
+                throw std::invalid_argument("The length of char exceeds 255.");
+    }
+
     tables.insert(std::make_pair(table_name, schema));
     modified = true;
 }
@@ -86,6 +95,7 @@ void CatalogManager::forceWrite() {
 
         for(auto &attr: table.second.attrs) {
             writeString(meta, attr.first);
+            meta.write((char*)&attr.second.order, 1);
             meta.write((char*)&attr.second.type, 1);
             if(attr.second.type == common::attrtype::SQL_CHAR)
                 meta.write((char*)attr.second.size, 1);
@@ -112,7 +122,8 @@ void CatalogManager::loadFromFile() {
     int size = meta.tellg();
     meta.seekg(0, meta.beg);
     std::unique_ptr<char[]> raw_data(new char[size]);
-    meta.read(raw_data.get(), size);
+    if (size > 0)
+        meta.read(raw_data.get(), size);
     meta.close();
 
     std::vector<bool> uniques;
@@ -142,13 +153,14 @@ void CatalogManager::loadFromFile() {
         for(int i = 0; i < attr_sz; ++i) {
             std::string attr_name(raw_data.get() + ptr);
             while(raw_data[ptr++]);
+            unsigned char order(raw_data[ptr++]);
 
             common::attrtype::SQL_TYPE type = static_cast<common::attrtype::SQL_TYPE>(raw_data[ptr]);
             unsigned int size = 0;
             if(type == common::attrtype::SQL_CHAR) 
                 size = static_cast<unsigned char>(raw_data[++ptr]);
 
-            table.attrs.insert(std::make_pair(attr_name,  common::attrtype(type, uniques[i], size)));
+            table.attrs.insert(std::make_pair(attr_name,  common::attrtype(type, uniques[i], order, size)));
         }
 
         tables.insert(std::make_pair(table_name, table));
@@ -163,7 +175,8 @@ void CatalogManager::loadFromFile() {
     size = meta.tellg();
     meta.seekg(0, meta.beg);
     raw_data.reset(new char[size]);
-    meta.read(raw_data.get(), size);
+    if (size > 0)
+        meta.read(raw_data.get(), size);
     meta.close();
 
     for(unsigned int ptr = 0; ptr < size;) {

@@ -2,6 +2,8 @@
 #define TABLE_H
 #include "common.h"
 #include <map>
+#include <string>
+
 class Table
 {
 public:

@@ -7,7 +7,10 @@
 namespace CM
 {
     // table_name and attribute name
-    using IndexInfo = std::pair<std::string, std::string>;
+
+    using TableName = std::string;
+    using AttributeName = std::string;
+    using IndexInfo = std::pair<TableName, AttributeName>;
 
     class CatalogManager
     {
@@ -51,6 +54,7 @@ namespace CM
         // create table by giving its name and schema
         // @param: the name of table and a Table variable containing its schema
         // @throw: std::invalid_argument("Table already exists") if there already exists the table with given name
+        //         std::invalid_argument(ErrorInfo) if the definition of schema violate some constrain such that the length of char variable exceeds 255
         void createTable(const std::string& table_name, const Table& schema);
 
         // drop specified table from database by giving its name

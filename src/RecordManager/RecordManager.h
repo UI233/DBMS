@@ -5,9 +5,9 @@
 #include <string>
 #include <iostream>
 #include <map>
-#include "BufferManager.h"
-#include "CatalogManager.h"
-#include "API.h"
+#include "../BufferManager/BufferManager.h"
+#include "../CatalogManager/CatalogManager.h"
+#include "../API/API.h"
 
 namespace RM{
 

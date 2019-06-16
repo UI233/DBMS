@@ -12,13 +12,15 @@ namespace common
             SQL_CHAR,
             SQL_FLOAT
         };
-        attrtype(SQL_TYPE t_type, bool t_unique, unsigned int t_size = 0): type(t_type), unique(t_unique), size(t_size) {}
+        attrtype(SQL_TYPE t_type, bool t_unique, unsigned int t_order, unsigned int t_size = 0): 
+            type(t_type), unique(t_unique), order(t_order), size(t_size) {}
         attrtype() {}
         ~attrtype() {}
         SQL_TYPE type;
         bool unique;
         // if type == SQL_CHAR it has such attribute to indicate its maximal length
         unsigned int size; 
+        unsigned char order;
         inline size_t getSize() {
             if (type == SQL_CHAR)
                 return sizeof(char) * size;
