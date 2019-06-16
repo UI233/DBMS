@@ -18,6 +18,17 @@ int RecordManager::getRecordLength(const std::string &tableName) {
     return len;
 }
 
+int RecordManager::getTotalRecordNumber(const std::string &tableName) {
+    loadTable(tableName);
+    return recordCount;
+}
+
+bool RecordManager::isValid(const std::string &tableName, int id) {
+    loadTable(tableName);
+    loadRecord(id);
+    return (page->data[bias + recordLength - 1] == 0);
+}
+
 std::string RecordManager::getRawData(const std::string &tableName, int id) {
     loadTable(tableName);
     loadRecord(id);

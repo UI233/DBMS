@@ -141,8 +141,8 @@ void CatalogManager::forceWrite() {
     meta.close();
     meta.open(meta_index, std::ios::binary);
     for(auto &index: indices) {
-        writeString(meta, index.first);
         writeString(meta, index.second.first);
+        writeString(meta, index.first);
         writeString(meta, index.second.second);
     }
 }
@@ -232,16 +232,20 @@ void CatalogManager::loadFromFile() {
 }
 
 void CatalogManager::createindex(const std::string &table_name, const std::string &attr_name,const std::string &index_name) {
-    if(indices.count(index_name))
-        throw std::invalid_argument("existing index");
-    
+    auto pr = indices.equal_range(table_name);
+    for (auto itr = pr.first; itr != pr.second; ++itr) {
+        if (itr->second.second == attr_name)
+            throw std::invalid_argument("existing index");
+    }
+
     auto table_itr = tables.find(table_name);
     if(table_itr == tables.end())
         throw std::invalid_argument("No such table");
 
-    if (!table_itr->second.attrs.count(attr_name))
+    auto attr_itr = table_itr->second.attrs.find(attr_name);
+    if (attr_itr == table_itr->second.attrs.end() || !attr_itr->second.unique)
         throw std::invalid_argument("Invalid attribute");
 
-    indices.insert(std::make_pair(index_name, IndexInfo(table_name, attr_name)));
+    indices.insert(std::make_pair(table_name, IndexInfo(index_name, attr_name)));
     modified = true;
 }
