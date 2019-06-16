@@ -99,7 +99,7 @@ void CatalogManager::forceWrite() {
             meta.write((char*)&attr.second.order, 1);
             meta.write((char*)&attr.second.type, 1);
             if(attr.second.type == common::attrtype::SQL_CHAR)
-                meta.write((char*)attr.second.size, 1);
+                meta.write((char*)&attr.second.size, 1);
         }
     }
 
@@ -130,7 +130,7 @@ void CatalogManager::loadFromFile() {
     meta.close();
 
     std::vector<bool> uniques;
-    for(int ptr = 0; ptr < size;) {
+    for(int ptr = 0; ptr < size; ) {
         // the format of table file is in the document
         std::string table_name(raw_data.get() + ptr);
         Table table;
@@ -140,13 +140,14 @@ void CatalogManager::loadFromFile() {
         ptr += primary_key.length() + 1;
         table.primary_key = primary_key;
 
-        unsigned int attr_sz = (unsigned char)raw_data[ptr];
+        unsigned int attr_sz = (unsigned char)raw_data[ptr++];
         unsigned int unique_bits_map = (attr_sz % 8 == 0) ? attr_sz / 8 : (attr_sz / 8) + 1;
 
         for(unsigned int i = 0; i < attr_sz; ++i) {
             unsigned int num = i / 8u;
             unsigned int bias = i % 8u;
 
+            auto t = static_cast<unsigned char>(raw_data[ptr + num]) << bias;
             bool unique = 0x80u & (static_cast<unsigned char>(raw_data[ptr + num]) << bias);
             uniques.push_back(unique);
         }
@@ -162,7 +163,7 @@ void CatalogManager::loadFromFile() {
             unsigned int size = 0;
             if(type == common::attrtype::SQL_CHAR) 
                 size = static_cast<unsigned char>(raw_data[++ptr]);
-
+            ++ptr;
             table.attrs.insert(std::make_pair(attr_name,  common::attrtype(type, uniques[i], order, size)));
         }
 

@@ -1,5 +1,5 @@
 #include "RecordManager.h"
-
+#include <cstring>
 using namespace RM;
 
 int RecordManager::getRecordLength(const std::string &tableName) {
@@ -190,8 +190,8 @@ void RecordManager::loadTable(const std::string &tableName) {
 void RecordManager::updateHeader() {
     std::string tableFileStr = tableFile(tableName);
     BM::Page *page = API::getBM().getPage(tableFileStr, 0);
-    page->modify((char*)&recordCount, 4, sizeof(int));
-    page->modify((char*)&firstEmpty, 8, sizeof(int));
+    page->modify((char*)&recordCount, 4, 4 + sizeof(int));
+    page->modify((char*)&firstEmpty, 8, 8 + sizeof(int));
     page->unpin();
 }
 

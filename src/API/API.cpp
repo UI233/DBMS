@@ -18,3 +18,7 @@ void API::init() {
     if (!api)
         api = new API();
 }
+
+void API::destroy() {
+    delete api;
+}

@@ -11,6 +11,7 @@ public:
     static BM::BufferManager& getBM();
     static CM::CatalogManager& getCM();
     static void init();
+    static void destroy();
     static bool dropTable(const std::string &table_name);
     static bool dropIndex(const std::string &table_name);
 
