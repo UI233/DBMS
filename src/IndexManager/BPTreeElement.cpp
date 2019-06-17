@@ -15,7 +15,8 @@ using namespace BM;
 BPTreeElement::BPTreeElement(string _fileName, int _id, int _length):
  fileName(_fileName), id(_id), length(_length) {
     BufferManager &bm=API::getBM();
-    Page *page = bm.getPage(_fileName, id);
+    cout<<_fileName+ ".mdb"<<endl;
+    Page *page = bm.getPage(_fileName+ ".mdb", id);
     unsigned char * data = &(page->data[0]);
     size = *(reinterpret_cast<int*>(data));
     keys.push_back(nullptr);
@@ -53,7 +54,7 @@ BPTreeElement::~BPTreeElement()
     {
       //  cout<<"Into ~"<<endl;
         BufferManager &bm=API::getBM();
-        Page* page = bm.getPage(fileName, id);
+        Page* page = bm.getPage(fileName+ ".mdb", id);
       //  cout<<"After get page"<<endl;
         unsigned char * data = &(page->data[0]);
 

@@ -17,7 +17,7 @@ using namespace IM;
 // Find key in index. Return record id
 int IndexManager::find(string indexName, unsigned char* key)
 {
-    BPTree* tree = new BPTree("index/" + indexName);
+    BPTree* tree = new BPTree(indexName);
     int ret = tree->find(key);
     delete tree;
     return ret;
@@ -27,7 +27,7 @@ int IndexManager::find(string indexName, unsigned char* key)
 bool IndexManager::insert(string indexName, unsigned char* key, int value)
 {
 
-    BPTree* tree = new BPTree("index/" + indexName);
+    BPTree* tree = new BPTree(indexName);
     int preCheck=tree->find(key);
     if (preCheck!=-1){
         throw std::runtime_error("ERROR: [IndexManager::insert] Duplicate Key in index.");
@@ -47,7 +47,7 @@ bool IndexManager::insert(string indexName, unsigned char* key, int value)
 // Delete key from index. Return true if success
 bool IndexManager::remove(string indexName, unsigned char* key)
 {
-    BPTree* tree = new BPTree("index/" + indexName);
+    BPTree* tree = new BPTree(indexName);
     if (!tree->remove(key))
     {
         throw std::runtime_error("ERROR: [IndexManager::remove] Cannot find key in index.");
@@ -73,7 +73,7 @@ bool IndexManager::createIndex(string indexName, string tableName, string attrib
     common::attrtype type=table->attrs[attributeName];
     int keyLength=type.getSize();
     cout<<"create file"<<endl;
-    BPTree::createFile("index/" + common::getIndexFile(indexName, tableName, attributeName), keyLength);
+    BPTree::createFile(common::getIndexFile(indexName, tableName, attributeName), keyLength);
     return true;
 }
 
@@ -82,6 +82,6 @@ bool IndexManager::dropIndex(string indexName)
 {
     using namespace BM;
     BufferManager &bm=API::getBM();
-    bm.deleteFile("data/index/" + indexName + ".mdb");
+    bm.deleteFile(indexName + ".mdb");
     return true;
 }

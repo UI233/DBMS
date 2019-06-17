@@ -30,21 +30,17 @@ void BPTree::createFile(string _fileName, int _length, int _order)
 
     // Create file
     BufferManager &bm=API::getBM();
-    auto toWrite = bm.createPage("data/" + _fileName + ".mdb");
+    auto toWrite = bm.createPage(_fileName + ".mdb");
     int header[] = {_order, _length, 0, -1, -1};
     toWrite->modify(reinterpret_cast<char*>(header),0,sizeof(header));
-//    FILE* file = fopen(("data/" + _fileName + ".mdb").c_str(), "wb");
-//
-//    fwrite(header, 4, 5, file);
-//    fclose(file);
 }
 
 // Constructor
 BPTree::BPTree(string _fileName): fileName(_fileName)
 {
     BufferManager &bm=API::getBM();
-    std::cout << _fileName << std::endl;
-    Page* page = bm.getPage(_fileName, 0);
+//    std::cout << _fileName << std::endl;
+    Page* page = bm.getPage(_fileName+ ".mdb", 0);
 //    cout<<"Page gotten"<<endl;
     unsigned char * data = &(page->data[0]);
     int * idata=(reinterpret_cast<int*>(data));
@@ -289,12 +285,12 @@ int BPTree::getFirstEmpty()
 
     if (firstEmpty < 0)
         {
-        bm.createPage(fileName);
+        bm.createPage(fileName+ ".mdb");
         return ++nodeCount;
         }
 
     int ret = firstEmpty;
-    Page* page = bm.getPage(fileName, firstEmpty);
+    Page* page = bm.getPage(fileName+ ".mdb", firstEmpty);
     firstEmpty = *(reinterpret_cast<int*>(&(page->data[0])));
     return ret;
 }
@@ -304,7 +300,7 @@ void BPTree::removeBlock(int id)
 {
     BufferManager &bm=API::getBM();
 
-    Page* page = bm.getPage(fileName, id);
+    Page* page = bm.getPage(fileName+ ".mdb", id);
     memcpy(&(page->data[0]), &firstEmpty, 4);
     firstEmpty = id;
 }
@@ -313,7 +309,7 @@ void BPTree::removeBlock(int id)
 void BPTree::updateHeader()
 {
     BufferManager &bm=API::getBM();
-    Page* page = bm.getPage(fileName, 0);
+    Page* page = bm.getPage(fileName+ ".mdb", 0);
     unsigned char *data=&(page->data[0]);
     memcpy(data + 8, &nodeCount, 4);
     memcpy(data + 12, &root, 4);

@@ -119,7 +119,7 @@ bool API::createIndex(const std::string & index_name, const std::string &table_n
                 auto length = attr_type.getSize();
                 auto raw_data = record_manager.getRawData(table_name, i);
                 auto key = raw_data.c_str() + offset;
-                index_manager.insert(index_name, (unsigned char*)key, i);
+                index_manager.insert(common::getIndexFile(index_name,table_name,attr_name), (unsigned char*)key, i);
             }
     }
     catch(const std::exception& e)
@@ -297,7 +297,7 @@ bool API::insertRecord(const std::string& table_name, const std::vector<SQLValue
         if (itr.second.unique){
             auto index_name = cm.getIndexName(table_name, itr.first);
             if (index_name != ""){
-                if (im.find(common::getIndexFile(index_name,table_name,itr.first),(unsigned char*)raw_data.c_str()) != -1){
+                if (im.find(index_name,(unsigned char*)data.c_str()) != -1){
                     std::cerr<<"API::insertRecord duplicate record insert\n";
                     return false;
                 }
@@ -381,7 +381,7 @@ bool API::select(const std::string &table_name, const std::vector<Condition> &co
         if(isOptimalChance&&!isExecEqual&&it.op==Operator::EQUAL&&catalog_manager.checkIndex(table_name,it.name))
         {
             isExecEqual=true;
-            equalID=index_manager.find(common::getIndexFile(catalog_manager.getIndexName(table_name,it.name),table_name,it.name),(unsigned char *)str.c_str());
+            equalID=index_manager.find(catalog_manager.getIndexName(table_name,it.name),(unsigned char *)str.c_str());
         }
         operand.push_back(str);
     }
@@ -455,7 +455,7 @@ bool API::deleteOperation(const std::string &table_name, const std::vector<Condi
         if(isOptimalChance&&!isExecEqual&&it.op==Operator::EQUAL&&catalog_manager.checkIndex(table_name,it.name))
         {
             isExecEqual=true;
-            equalID=index_manager.find(common::getIndexFile(catalog_manager.getIndexName(table_name,it.name),table_name,it.name),(unsigned char *)str.c_str());
+            equalID=index_manager.find(catalog_manager.getIndexName(table_name,it.name),(unsigned char *)str.c_str());
         }
         operand.push_back(str);
     }
