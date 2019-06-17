@@ -2,7 +2,9 @@
 #define SEMANTICCHECK_H
 #include "../CatalogManager/CatalogManager.h"
 #include <string>
+#include <iostream>
 #include <vector>
+#include "../Interpreter/QueryType.h"
 /*insert:
 check the table_name
 check the type of attribute (length of string is enough),

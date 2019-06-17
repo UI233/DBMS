@@ -73,7 +73,7 @@ bool IndexManager::createIndex(string indexName, string tableName, string attrib
     common::attrtype type=table->attrs[attributeName];
     int keyLength=type.getSize();
     cout<<"create file"<<endl;
-    BPTree::createFile("index/" + common::getIndexFile(indexName, tableName, attributeName)), keyLength);
+    BPTree::createFile("index/" + common::getIndexFile(indexName, tableName, attributeName), keyLength);
     return true;
 }
 
@@ -82,6 +82,6 @@ bool IndexManager::dropIndex(string indexName)
 {
     using namespace BM;
     BufferManager &bm=API::getBM();
-    bm.deleteFile("index/" + indexName);
+    bm.deleteFile("data/index/" + indexName + ".mdb");
     return true;
 }

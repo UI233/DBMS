@@ -21,17 +21,23 @@ std::optional<Table> CatalogManager::getTableByName(const std::string& table_nam
 
 
 std::optional<IndexInfo> CatalogManager::getIndex(const std::string& table_index) const {
-    if(!indices.count(table_index))
+    if(!indices_info.count(table_index))
         return {};
-    else return indices.find(table_index)->second;
+    else return indices_info.find(table_index)->second;
 }
 
 bool CatalogManager::checkTableByName(const std::string& table_name) const {
     return tables.count(table_name);
 }
 
-bool CatalogManager::checkIndex(const std::string& table_index) const{
-    return indices.count(table_index);
+bool CatalogManager::checkIndex(const std::string& table_name, const std::string& attr_name) const{
+    auto pr = indices.equal_range(table_name);
+
+    for (auto itr = pr.first; itr != pr.second; ++itr)
+        if (itr->second.second == attr_name)
+            return true;
+    
+    return false;
 }
 
 void CatalogManager::createTable(const std::string& table_name, const Table& schema) {
@@ -48,6 +54,9 @@ void CatalogManager::createTable(const std::string& table_name, const Table& sch
                 throw std::invalid_argument("The length of char exceeds 255.");
     }
 
+    auto primary_index_name = "pri_" + table_name + "_" + schema.primary_key;
+    indices_info.insert(std::make_pair(primary_index_name, std::make_pair(table_name, schema.primary_key)));
+    indices.insert(std::make_pair(table_name, std::make_pair(primary_index_name, schema.primary_key)));
     tables.insert(std::make_pair(table_name, schema));
     modified = true;
 }
@@ -62,8 +71,11 @@ std::vector<std::string> CatalogManager::dropTable(const std::string& table_name
     for (auto itr = pr.first; itr != pr.second; ++itr) {
         auto file_name = common::getIndexFile(itr->second.first, itr->first, itr->second.second);
         res.push_back(std::move(file_name));
-        indices.erase(itr);
+        indices_info.erase(itr->second.first);
     }
+
+    if (pr.first != indices.end())
+        indices.erase(pr.first->first);
 
     modified = true;
     tables.erase(itr);
@@ -228,10 +240,11 @@ void CatalogManager::loadFromFile() {
         ptr += attr_name.length() + 1;
 
         indices.insert(std::make_pair(table_name, IndexInfo(index_name, attr_name)));
+        indices_info.insert(std::make_pair(index_name, std::make_pair(table_name, attr_name)));
     }
 }
 
-void CatalogManager::createindex(const std::string &table_name, const std::string &attr_name,const std::string &index_name) {
+void CatalogManager::createIndex(const std::string &index_name, const std::string &table_name,const std::string &attr_name) {
     auto pr = indices.equal_range(table_name);
     for (auto itr = pr.first; itr != pr.second; ++itr) {
         if (itr->second.second == attr_name)
@@ -248,4 +261,26 @@ void CatalogManager::createindex(const std::string &table_name, const std::strin
 
     indices.insert(std::make_pair(table_name, IndexInfo(index_name, attr_name)));
     modified = true;
+}
+
+void CatalogManager::dropIndex(const std::string &index_name) {
+    if (!indices_info.count(index_name))
+        throw std::invalid_argument("No such index");
+
+    auto info = getIndex(index_name);
+    indices_info.erase(index_name);
+    bool flag = true;
+    while (flag) {
+        auto pr = indices.equal_range(info->first);
+        flag = false;
+        for (auto itr = pr.first; itr != pr.second; ++itr)
+            if (itr->second.first == index_name) {
+                indices.erase(itr);
+                flag = true;
+                break;
+            }
+    }
+
+    modified = true;
+    return ;
 }

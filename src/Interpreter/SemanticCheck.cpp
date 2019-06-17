@@ -7,7 +7,7 @@ check if the attribute is unique
 */
 bool check_insert(const std::string &table_name, std::vector<SQLValue> &value_list)
 {
-    auto cm =new CatalogManager();
+    auto cm =new CM::CatalogManager();
     //check name
     if (!cm->checkTableByName(table_name))
     {
@@ -15,25 +15,25 @@ bool check_insert(const std::string &table_name, std::vector<SQLValue> &value_li
         return false;
     }
 
-    auto &tb = cm->getTableByName(table_name);
+    auto tb = cm->getTableByName(table_name);
 
     //check the number of values
-    if (tb.intgetAttrNum() != value_list.size())
+    if (tb->getAttrNum() != value_list.size())
     {
         std::cerr << "Number of values not fit!" << std::endl;
         return false;
     }
 
     //check the sqlvalue's type
-    for(auto &attr: tb.attrs) 
+    for(auto &attr: tb->attrs) 
     {
         //the order 
-        if ((int)value_list[attr.order].type!=attr.type)
+        if ((int)value_list[attr.second.order].type!=attr.second.type)
         {
-            if (value_list[attr.order].type == SQLValueType::INT && tb.attrType[attr.order].type == common::attrtype::SQL_FLOAT)
+            if (value_list[attr.second.order].type == SQLValueType::INT && attr.second.type == common::attrtype::SQL_FLOAT)
             {
-                value_list[attr.order].type = SQLValueType::FLOAT;
-                value_list[attr.order].r = value_list[attr.order].i;
+                value_list[attr.second.order].type = SQLValueType::FLOAT;
+                value_list[attr.second.order].r = value_list[attr.second.order].i;
             } 
             else
             {
@@ -42,9 +42,9 @@ bool check_insert(const std::string &table_name, std::vector<SQLValue> &value_li
             }
         }
         //the charSize
-        if (value_list[attr.order].type == SQLValueType::STRING)
+        if (value_list[attr.second.order].type == SQLValueType::STRING)
         {
-            if (value_list[attr.order].str.length() > attr.size)
+            if (value_list[attr.second.order].str.length() > attr.second.getSize())
             {
                 std::cout << "Over pass the size of char(..)." << std::endl;
                 return false;
@@ -60,7 +60,7 @@ check whether the condition has correct type and attribute,
 */
 bool check_delete(const std::string &table_name, /*test const*/std::vector<Condition> &condition_list)
 {
-    auto cm =new CatalogManager();
+    auto cm =new CM::CatalogManager();
     //check table 
     if (!cm->checkTableByName(table_name))
     {
@@ -68,18 +68,18 @@ bool check_delete(const std::string &table_name, /*test const*/std::vector<Condi
         return false;
     }
 
-    auto &tb = cm->getTableByName(table_name);
+    auto tb = cm->getTableByName(table_name);
     //check conditions
     for (const auto &cond: condition_list)
     {
-        auto it = tb.attrs.find(cond.name);
-        if (it == tb.attrs.end())
+        auto it = tb->attrs.find(cond.name);
+        if (it == tb->attrs.end())
         {
             std::cerr << "Attribute in conditions mismatch!" << std::endl;
             return false;
         }
-        auto type = tb.attrs[cond.name].type;
-        if (type!= cond.val.type.type)
+        auto type = tb->attrs[cond.name].type;
+        if (type!= common::attrtype::SQL_TYPE((int)(cond.val.type)))
         {
             std::cerr << "Type in conditions mismatch!" << std::endl;
             return false;
@@ -94,7 +94,7 @@ check whether the condition has correct type and attribute
 */
 bool check_select(const std::string &table_name, /*test const*/ std::vector<Condition> &condition_list)
 {
-        auto cm =new CatalogManager();
+        auto cm =new CM::CatalogManager();
         //check name
         if (!cm->checkTableByName(table_name))
         {
@@ -102,18 +102,18 @@ bool check_select(const std::string &table_name, /*test const*/ std::vector<Cond
             return false;
         }
 
-        auto &tb = cm->getTableByName(table_name);
-
+        auto tb = cm->getTableByName(table_name);
+        //check conditions
         for (const auto &cond: condition_list)
         {
-            auto it = tb.attrs.find(cond.name);
-            if (it == tb.attrs.end())
+            auto it = tb->attrs.find(cond.name);
+            if (it == tb->attrs.end())
             {
                 std::cerr << "Attribute in conditions mismatch!" << std::endl;
                 return false;
             }
-            auto type = tb.attrs[cond.name].type;
-            if (type!= cond.val.type.type)
+            auto type = tb->attrs[cond.name].type;
+            if (type!= common::attrtype::SQL_TYPE((int)(cond.val.type)))
             {
                 std::cerr << "Type in conditions mismatch!" << std::endl;
                 return false;

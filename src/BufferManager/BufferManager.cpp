@@ -28,9 +28,18 @@ void BufferManager::closeFile(const std::string &path) {
 }
 
 void BufferManager::deleteFile(const std::string &path) {
+    for (auto &v : file2page) 
+        if (v.first.second == path) {
+            auto idx = v.second;
+            pages[idx].unpin();
+            pages[idx].is_open = false;
+            file2page.erase(v.first);
+        }
+
     int idx = remove(path.c_str());
     if (idx == 0)
         return;
+
     throw std::runtime_error("Fail deleting file");
 }
 

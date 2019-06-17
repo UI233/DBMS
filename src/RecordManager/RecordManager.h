@@ -7,11 +7,10 @@
 #include <map>
 #include "../BufferManager/BufferManager.h"
 #include "../CatalogManager/CatalogManager.h"
-#include "../API/API.h"
 
 namespace RM{
 
-    enum Condition {EQ, NE, LT, GT, LE, GE};
+    enum Condition {GT,GE,LT,LE,EQ,NE};
 
     static constexpr unsigned int MAX_VALUE_LENGTH  = 256;
 
@@ -35,7 +34,7 @@ namespace RM{
         int selectRecord(
             const std::string &tableName, const std::vector<std::string> &colName,
             const std::vector<Condition> &cond, const std::vector<std::string> &operand,
-            std::vector<char*> &records, std::vector<int> &ids
+            std::vector<std::string> &records, std::vector<int> &ids
         );
 
         // Insert record into table. Return new index id

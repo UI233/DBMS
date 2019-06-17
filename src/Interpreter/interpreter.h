@@ -3,7 +3,6 @@
 #define INTERPRETER_H
 #define INPUT_LENGTH 40960
 
-#include <string>
 #include <vector>
 #include <iostream>
 #include <type_traits>
@@ -11,8 +10,10 @@
 #include <fstream>
 #include "interpreter.tab.h"
 #include "QueryType.h"
+#include "SemanticCheck.h"
+#include <exception>
 #include "lex.yy.h"
-#include "../API.h"
+#include <string>
 
 /*the parsed request */
 extern QueryRequest* query;

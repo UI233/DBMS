@@ -1,6 +1,7 @@
 #include "RecordManager.h"
 #include <cstring>
-using namespace RM;
+#include "../API/API.h"
+using RM::RecordManager;
 
 int RecordManager::getRecordLength(const std::string &tableName) {
     std::optional<Table> table = API::getCM().getTableByName(tableName);
@@ -40,8 +41,8 @@ std::string RecordManager::getRawData(const std::string &tableName, int id) {
 
 int RecordManager::selectRecord(
             const std::string &tableName, const std::vector<std::string> &colName,
-            const std::vector<Condition> &cond, const std::vector<std::string> &operand,
-            std::vector<char*> &records, std::vector<int> &ids
+            const std::vector<RM::Condition> &cond, const std::vector<std::string> &operand,
+            std::vector<std::string> &records, std::vector<int> &ids
 ) {
     loadTable(tableName);
     ptr = -1;
@@ -53,8 +54,9 @@ int RecordManager::selectRecord(
         // Check all conditions
         if (checkRecord(dataIn, tableName, colName, cond, operand))
         {
-            char* hit = new char[recordLength];
-            memcpy(hit, dataIn, recordLength);
+            std::string hit;
+            hit.resize(recordLength);
+            memcpy((void*)hit.c_str(), dataIn, recordLength);
 
             records.push_back(hit);
             ids.push_back(id);
@@ -67,7 +69,8 @@ int RecordManager::selectRecord(
 
 int RecordManager::insertRecord(const std::string &tableName, const std::string &data) {
     loadTable(tableName);
-    loadRecord(firstEmpty >= 0 ? firstEmpty : recordCount);
+    int id = firstEmpty >= 0 ? firstEmpty : recordCount;
+    loadRecord(id);
 
     if (firstEmpty >= 0)
         // Update first empty record
@@ -82,7 +85,7 @@ int RecordManager::insertRecord(const std::string &tableName, const std::string 
     updateHeader();
     page->unpin();
 
-    return true;
+    return id;
 }
 
 bool RecordManager::removeRecord(const std::string tableName, const int id) {
@@ -142,7 +145,7 @@ bool RecordManager::dropTable(const std::string &tableName) {
 
 bool RecordManager::checkRecord(
     const std::string &record, const std::string &tableName,
-    const std::vector<std::string> &colName, const std::vector<Condition> &cond,
+    const std::vector<std::string> &colName, const std::vector<RM::Condition> &cond,
     const std::vector<std::string> &operand
 ) {
     using namespace std;
@@ -150,7 +153,9 @@ bool RecordManager::checkRecord(
     if (!table)
         return false;
 
-    std::map<std::string, int> attrPos;
+    int condCount = colName.size();
+
+    std::map<string, int> attrPos;
     int offset = 0;
     for (const auto &attr: table->attrs) {
         attrPos.insert(make_pair(attr.first, offset));
@@ -161,8 +166,6 @@ bool RecordManager::checkRecord(
         if (attr.second.type == common::attrtype::SQL_FLOAT)
             offset += sizeof(float);
     }
-
-    int condCount = colName.size();
 
     for (int i = 0; i < condCount; i++)
     {
@@ -250,7 +253,7 @@ int RecordManager::getNextRecord(char* data) {
     return ptr;
 }
 
-bool RecordManager::charCmp(const char* a, const char* b, Condition op) {
+bool RecordManager::charCmp(const char* a, const char* b, RM::Condition op) {
     if (op == EQ)
         return strcmp(a, b) == 0;
     else if (op == NE)
@@ -267,7 +270,7 @@ bool RecordManager::charCmp(const char* a, const char* b, Condition op) {
         return false;
 }
 
-bool RecordManager::intCmp(const char* a, const char* b, Condition op) {
+bool RecordManager::intCmp(const char* a, const char* b, RM::Condition op) {
     const int left = *(reinterpret_cast<const int*>(a));
     const int right = *(reinterpret_cast<const int*>(b));
 
@@ -287,7 +290,7 @@ bool RecordManager::intCmp(const char* a, const char* b, Condition op) {
         return false;
 }
 
-bool RecordManager::floatCmp(const char* a, const char* b, Condition op) {
+bool RecordManager::floatCmp(const char* a, const char* b, RM::Condition op) {
     const float left = *(reinterpret_cast<const float*>(a));
     const float right = *(reinterpret_cast<const float*>(b));
 
