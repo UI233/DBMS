@@ -12,7 +12,7 @@ void API::exec() {
 }
 
 BM::BufferManager& API::getBM() {
-     if (!api)
+    if (!api)
         init();
     return api->buffer_manager;
 }
@@ -56,7 +56,7 @@ bool API::dropTable(const std::string &table_name) {
         for(auto &it:dropIndex){
             im.dropIndex(it);
         }
-    } 
+    }
     catch (const exception& err) {
         cout << err.what() << endl;
         return false;
@@ -108,12 +108,12 @@ bool API::createIndex(const std::string & index_name, const std::string &table_n
     {
         // insert it into CM /**/
         catalog_manager.createIndex(index_name, table_name, attr_name);
-        // insert every existing records into index manager if any 
+        // insert every existing records into index manager if any
         index_manager.createIndex(index_name, table_name, attr_name);
         // index_manager.createIndex(table_name);
         auto size = record_manager.getTotalRecordNumber(table_name);
         auto attr_type = table->attrs[attr_name];
-        for (int i = 0; i < size; ++i) 
+        for (int i = 0; i < size; ++i)
             if(record_manager.isValid(table_name, i)){
                 auto offset = table->getOffset(attr_name);
                 auto length = attr_type.getSize();
@@ -250,15 +250,15 @@ bool API::displaySelect(const std::string& table_name, const std::vector<std::st
 //}
 /*const std::string& data
 insert_query->value_list*/
-bool API::insertRecord(const std::string& table_name, const std::vector<SQLValue> value_list) 
+bool API::insertRecord(const std::string& table_name, const std::vector<SQLValue> value_list)
 {
-            
+
     //1. check uniqueness
     auto& rm=API::getRM();
     auto& cm = API::getCM();
     auto& im = API::getIM();
     std::optional<Table> table=cm.getTableByName(table_name);
-        //value_list to data
+    //value_list to data
     //first order the value_list to zidianxu, then join them into a string, the length is the attrType's size
     std::string data;
     std::string str;
@@ -267,23 +267,23 @@ bool API::insertRecord(const std::string& table_name, const std::vector<SQLValue
         total_sz += attr.second.getSize();
     data.resize(total_sz);
     total_sz = 0;
-    for(auto &attr: table->attrs) 
+    for(auto &attr: table->attrs)
     {
         switch (table->attrs[attr.first].type)
         {
-        case common::attrtype::SQL_INT:
-            memcpy((void*)(data.c_str() + total_sz), (char *)&(value_list[attr.second.order].i), sizeof(int));
-            break;
-        case common::attrtype::SQL_FLOAT:
-            memcpy((void*)(data.c_str() + total_sz), (char *)&(value_list[attr.second.order].r), sizeof(float));
-            break;
-        case common::attrtype::SQL_CHAR:
-            memcpy((void*)(data.c_str() + total_sz), value_list[attr.second.order].str.c_str(), table->attrs[attr.first].getSize());
-            break;
+            case common::attrtype::SQL_INT:
+                memcpy((void*)(data.c_str() + total_sz), (char *)&(value_list[attr.second.order].i), sizeof(int));
+                break;
+            case common::attrtype::SQL_FLOAT:
+                memcpy((void*)(data.c_str() + total_sz), (char *)&(value_list[attr.second.order].r), sizeof(float));
+                break;
+            case common::attrtype::SQL_CHAR:
+                memcpy((void*)(data.c_str() + total_sz), value_list[attr.second.order].str.c_str(), table->attrs[attr.first].getSize());
+                break;
         }
         total_sz += attr.second.getSize();
     }
-    
+
     if (!table)
         return false;
     for (auto itr: table->attrs){
@@ -297,7 +297,7 @@ bool API::insertRecord(const std::string& table_name, const std::vector<SQLValue
         if (itr.second.unique){
             auto index_name = cm.getIndexName(table_name, itr.first);
             if (index_name != ""){
-                if (im.find(common::getIndexFile(catalog_manager.getIndexName(table_name,it.name),table_name,it.name),(unsigned char*)raw_data.c_str()) != -1){
+                if (im.find(common::getIndexFile(index_name,table_name,itr.first),(unsigned char*)raw_data.c_str()) != -1){
                     std::cerr<<"API::insertRecord duplicate record insert\n";
                     return false;
                 }
@@ -385,13 +385,14 @@ bool API::select(const std::string &table_name, const std::vector<Condition> &co
         }
         operand.push_back(str);
     }
-    
+
     if(isExecEqual)
     {
         record=record_manager.getRawData(table_name,equalID);
-        r=record_manager.checkRecord(record,table_name,colName,cond,operand);
+        r=record_manager.checkRecord(record.c_str(),table_name,colName,cond,operand);
         if(r) {
-            records.push_back(record.c_str());
+            // todo
+            records.push_back(record);
         }
     }
     else
@@ -401,7 +402,7 @@ bool API::select(const std::string &table_name, const std::vector<Condition> &co
     /*打印records*/
     if (!r)
         return false;
-    displaySelect(table_name, records);    
+    displaySelect(table_name, records);
     return r;
 }
 
@@ -415,9 +416,9 @@ bool API::deleteOperation(const std::string &table_name, const std::vector<Condi
     std::vector<RM::Condition> cond;
     std::vector<std::string> operand;
     std::string str;
-    std::vector<std::string> indices;   
+    std::vector<std::string> indices;
     std::vector<std::string> records;
-    std::vector<int> ids; 
+    std::vector<int> ids;
     std::string record;
 
     bool isOptimalChance=true;
@@ -461,7 +462,7 @@ bool API::deleteOperation(const std::string &table_name, const std::vector<Condi
     if(isExecEqual==true)
     {
         record=record_manager.getRawData(table_name,equalID);
-        r=record_manager.checkRecord(record,table_name,colName,cond,operand);
+        r=record_manager.checkRecord(record.c_str(),table_name,colName,cond,operand);
         if(r==true)
         {
             r=record_manager.removeRecord(table_name,equalID);
@@ -479,6 +480,6 @@ bool API::deleteOperation(const std::string &table_name, const std::vector<Condi
         r= record_manager.removeRecord(table_name,ids);
         deleteNum=ids.size();
     }
-    std::cout<<"Delete success. "<<deleteNum<<" rows influenced."<<std::endl;
+    std::cout<<"Delete success. "<<ids.size()<<" rows influenced."<<std::endl;
     return r;
 }
