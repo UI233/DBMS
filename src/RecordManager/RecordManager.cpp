@@ -144,7 +144,7 @@ bool RecordManager::dropTable(const std::string &tableName) {
 }
 
 bool RecordManager::checkRecord(
-    const std::string &record, const std::string &tableName,
+    const char* record, const std::string &tableName,
     const std::vector<std::string> &colName, const std::vector<RM::Condition> &cond,
     const std::vector<std::string> &operand
 ) {
@@ -175,21 +175,21 @@ bool RecordManager::checkRecord(
         if (type == common::attrtype::SQL_CHAR)
         {
             // Char type
-            memcpy(dataOut, record.c_str() + attrPos.find(colName[i])->second, sizeof(char) * table->attrs.find(colName[i])->second.size);
+            memcpy(dataOut, record + attrPos.find(colName[i])->second, sizeof(char) * table->attrs.find(colName[i])->second.size);
             if (!charCmp(dataOut, operand.at(i).c_str(), cond.at(i)))
                 return false;
         }
         else if (type == common::attrtype::SQL_INT)
         {
             // Int type
-            memcpy(dataOut, record.c_str() + attrPos.find(colName[i])->second, sizeof(int));
+            memcpy(dataOut, record + attrPos.find(colName[i])->second, sizeof(int));
             if (!intCmp(dataOut, operand.at(i).c_str(), cond.at(i)))
                 return false;
         }
         else if (type == common::attrtype::SQL_FLOAT)
         {
             // Float type
-            memcpy(dataOut, record.c_str() + attrPos.find(colName[i])->second, sizeof(float));
+            memcpy(dataOut, record + attrPos.find(colName[i])->second, sizeof(float));
             if (!floatCmp(dataOut, operand.at(i).c_str(), cond.at(i)))
                 return false;
         }
@@ -227,7 +227,6 @@ void RecordManager::loadRecord(int id) {
         page = API::getBM().getPage(tableFileStr, pageIndex);
     else 
         page = API::getBM().createPage(tableFileStr);
-    page->unpin();
     bias = ptr % recordBlockCount * recordLength;
 }
 
@@ -250,6 +249,7 @@ int RecordManager::getNextRecord(char* data) {
     while (invalid);
 
     memcpy(data, &page->data[bias], recordLength - 1);
+    page->unpin();
     return ptr;
 }
 

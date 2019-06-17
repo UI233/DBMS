@@ -52,7 +52,7 @@ namespace RM{
 
         // Check if record satisfy all conditions
         bool checkRecord(
-            const std::string &record, const std::string &tableName,
+            const char* , const std::string &tableName,
             const std::vector<std::string> &colName, const std::vector<Condition> &cond,
             const std::vector<std::string> &operand
         ); 
