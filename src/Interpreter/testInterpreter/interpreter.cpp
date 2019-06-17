@@ -185,21 +185,40 @@ void execQuery()
 		{
 
 			auto create_table_query = dynamic_cast<CreateTableQuery *>(query);
+			std::string primary_index_name;
 			if (create_table_query)
 			{
 				try
 				{	
 					//check
+			        if (!create_table_query->primary_key_name.empty())
+			        {
+			            bool pri_schema_found = false;
+			            for (auto &it: create_table_query->attr_list)
+			            {
+			                if (it.attrname == create_table_query->primary_key_name)
+			                {
+			                    pri_schema_found = true;
+       							primary_index_name = "pri_" + create_table->table_name + "_" + attrname;
+			                }
+			            }
+			            if (!pri_schema_found)
+			            {
+			                 throw std::invalid_argument("Table already exists");
+			            }
+			        }
 					Table tb = new Table();
 					createQueryToTable(create_table_query,tb);
 					CM.createTable(create_table_query->table_name, tb);
+					CM.createIndex(create_table_query->table_name,create_table_query->primary_key_name,primary_index_name);
 					//execute
-					auto r = Api::create_table(create_table_query->table_name,
-					create_table_query->attr_list,
-					create_table_query->primary_key_name);
-
+					auto r = Api::create_table(create_table_query->table_name,primary_index_name);
+	    			CM.Flush();
 				}
-				catch()
+				catch(exception& e)
+				{
+					std::cerr<<e.what()<<std::endl;
+				}
 				
 				delete create_table_query;
 				query = nullptr;
@@ -217,8 +236,6 @@ void execQuery()
 				{
 					CM.createindex(create_index_query->table_name, create_index_query->attr_name, create_index_query->index_name);
 					auto r = Api::create_index(create_index_query->table_name, create_index_query->attr_name, create_index_query->index_name);
-
-	/*鬼知道这边要不要输出*/				std::cout<<"Successfully create index."<<std::endl;
 				}
 				catch(exception& e)
 				{
