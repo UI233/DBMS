@@ -213,7 +213,8 @@ void execQuery()
 					catalog_manager.createTable(create_table_query->table_name, tb);
                     // Modified by UI
 					//catalogManager->createIndex(create_table_query->table_name,create_table_query->primary_key_name,primary_index_name);
-                    catalog_manager.createIndex(primary_index_name, create_table_query->table_name, create_table_query->primary_key_name);
+                    if (create_table_query->primary_key_name != "")
+                        catalog_manager.createIndex(primary_index_name, create_table_query->table_name, create_table_query->primary_key_name);
 					//execute
 					auto r = API::createTable(create_table_query->table_name,create_table_query->primary_key_name,primary_index_name);
 				}
@@ -233,7 +234,6 @@ void execQuery()
 			auto create_index_query = dynamic_cast<CreateIndexQuery *>(query);
 			if (create_index_query)
 			{
-
 				try
 				{
                     // modified by UI 13:03
@@ -314,16 +314,6 @@ void execQuery()
     }
 
 }
-
-#ifndef _DEBUG
-int main(int argc, char *argv[])
-{
-    Interpreter IM;
-    IM.read_command_loop();
-    return 0;
-}
-#endif // !DEBUG
-
 
 void createQueryToTable(const CreateTableQuery * query,Table& tb)
 {

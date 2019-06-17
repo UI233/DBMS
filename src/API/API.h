@@ -38,7 +38,7 @@ private:
     };
     API() { static GC gc; }
 
-    static bool API::displaySelect(const std::string& table_name, const std::vector<std::string>& raw_data);
+    static bool displaySelect(const std::string& table_name, const std::vector<std::string>& raw_data);
     BM::BufferManager buffer_manager;
     CM::CatalogManager catalog_manager;
     IM::IndexManager  index_manager;

@@ -90,7 +90,8 @@ bool API::dropIndex(const std::string& index_name) {
 bool API::createTable(const std::string& table_name,const std::string& primary_key_name, const std::string& primary_index_name) {
     auto& rm = API::getRM();
     auto& im = API::getIM();
-    im.createIndex (primary_index_name,table_name, primary_key_name);
+    if (primary_index_name != "")
+        im.createIndex (primary_index_name,table_name, primary_key_name);
     std::cout << "Create table success." << std::endl;
     auto rval = rm.createTable(table_name);
     return rval;
