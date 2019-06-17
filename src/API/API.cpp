@@ -297,7 +297,7 @@ bool API::insertRecord(const std::string& table_name, const std::vector<SQLValue
         if (itr.second.unique){
             auto index_name = cm.getIndexName(table_name, itr.first);
             if (index_name != ""){
-                if (im.find(index_name,(unsigned char*)raw_data.c_str()) != -1){
+                if (im.find(common::getIndexFile(catalog_manager.getIndexName(table_name,it.name),table_name,it.name),(unsigned char*)raw_data.c_str()) != -1){
                     std::cerr<<"API::insertRecord duplicate record insert\n";
                     return false;
                 }
@@ -381,7 +381,7 @@ bool API::select(const std::string &table_name, const std::vector<Condition> &co
         if(isOptimalChance&&!isExecEqual&&it.op==Operator::EQUAL&&catalog_manager.checkIndex(table_name,it.name))
         {
             isExecEqual=true;
-            equalID=index_manager.find(it.name,(unsigned char *)str.c_str());
+            equalID=index_manager.find(common::getIndexFile(catalog_manager.getIndexName(table_name,it.name),table_name,it.name),(unsigned char *)str.c_str());
         }
         operand.push_back(str);
     }
@@ -454,7 +454,7 @@ bool API::deleteOperation(const std::string &table_name, const std::vector<Condi
         if(isOptimalChance&&!isExecEqual&&it.op==Operator::EQUAL&&catalog_manager.checkIndex(table_name,it.name))
         {
             isExecEqual=true;
-            equalID=index_manager.find(it.name,(unsigned char *)str.c_str());
+            equalID=index_manager.find(common::getIndexFile(catalog_manager.getIndexName(table_name,it.name),table_name,it.name),(unsigned char *)str.c_str());
         }
         operand.push_back(str);
     }
@@ -477,6 +477,7 @@ bool API::deleteOperation(const std::string &table_name, const std::vector<Condi
     {
         r= record_manager.selectRecord(table_name,colName,cond,operand,records,ids);
         r= record_manager.removeRecord(table_name,ids);
+        deleteNum=ids.size();
     }
     std::cout<<"Delete success. "<<deleteNum<<" rows influenced."<<std::endl;
     return r;
