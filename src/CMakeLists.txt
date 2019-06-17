@@ -12,6 +12,7 @@ aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CatalogManager catalog)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/RecordManager record)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Interpreter interpreter)
 
+
 # link_directories(${BM_LIB} ${CM_LIB} ${RM_LIB} ${IM_LIB} ${IT_LIB})
 # link_directories(${BM_LIB} ${IM_LIB})
 # Executable

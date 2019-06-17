@@ -51,6 +51,7 @@ bool API::dropTable(const std::string &table_name) {
     auto& rm = API::getRM();
 
     try {
+        rm.dropTable(table_name);
         vector<string> dropIndex = cm.dropTable(table_name);
         for(auto &it:dropIndex){
             im.dropIndex(it);
@@ -60,7 +61,6 @@ bool API::dropTable(const std::string &table_name) {
         cout << err.what() << endl;
         return false;
     }
-    rm.dropTable(table_name);
     return true;
 }
 
@@ -262,25 +262,26 @@ bool API::insertRecord(const std::string& table_name, const std::vector<SQLValue
     //first order the value_list to zidianxu, then join them into a string, the length is the attrType's size
     std::string data;
     std::string str;
-
+    size_t total_sz = 0;
+    for (auto &attr : table->attrs)
+        total_sz += attr.second.getSize();
+    data.resize(total_sz);
+    total_sz = 0;
     for(auto &attr: table->attrs) 
     {
-        switch(table->attrs[attr.first].type)
+        switch (table->attrs[attr.first].type)
         {
-            case common::attrtype::SQL_INT:
-                str.resize(sizeof(int));
-                memcpy(&str[0],(char *)&(value_list[attr.second.order].i),sizeof(int));
-                break;
-            case common::attrtype::SQL_FLOAT:
-                str.resize(sizeof(float));
-                memcpy(&str[0],(char *)&(value_list[attr.second.order].r),sizeof(float));
-                break;
-            case common::attrtype::SQL_CHAR:
-                str.resize(table->attrs[attr.first].size);
-                memcpy(&str[0],value_list[attr.second.order].str.c_str(),table->attrs[attr.first].getSize());
-                break;
+        case common::attrtype::SQL_INT:
+            memcpy((void*)(data.c_str() + total_sz), (char *)&(value_list[attr.second.order].i), sizeof(int));
+            break;
+        case common::attrtype::SQL_FLOAT:
+            memcpy((void*)(data.c_str() + total_sz), (char *)&(value_list[attr.second.order].r), sizeof(float));
+            break;
+        case common::attrtype::SQL_CHAR:
+            memcpy((void*)(data.c_str() + total_sz), value_list[attr.second.order].str.c_str(), table->attrs[attr.first].getSize());
+            break;
         }
-        data+=str;
+        total_sz += attr.second.getSize();
     }
     
     if (!table)
@@ -291,7 +292,7 @@ bool API::insertRecord(const std::string& table_name, const std::vector<SQLValue
         auto key = data.c_str() + offset;
         std::string raw_data;
         raw_data.resize(length);
-        raw_data.copy((char*)(data.c_str() + offset), length);
+        data.copy((char*)raw_data.c_str(), length, offset);
 
         if (itr.second.unique){
             auto index_name = cm.getIndexName(table_name, itr.first);
