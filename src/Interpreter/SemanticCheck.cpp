@@ -1,3 +1,4 @@
+#include "../API/API.h"
 #include "SemanticCheck.h"
 
 /*insert:
@@ -7,15 +8,15 @@ check if the attribute is unique
 */
 bool check_insert(const std::string &table_name, std::vector<SQLValue> &value_list)
 {
-    auto cm =new CM::CatalogManager();
+    auto& cm = API::getCM();
     //check name
-    if (!cm->checkTableByName(table_name))
+    if (!cm.checkTableByName(table_name))
     {
         std::cerr << "Table not found!" << std::endl;
         return false;
     }
 
-    auto tb = cm->getTableByName(table_name);
+    auto tb = cm.getTableByName(table_name);
 
     //check the number of values
     if (tb->getAttrNum() != value_list.size())
@@ -30,9 +31,9 @@ bool check_insert(const std::string &table_name, std::vector<SQLValue> &value_li
         //the order 
         if ((int)value_list[attr.second.order].type!=attr.second.type)
         {
-            if (value_list[attr.second.order].type == SQLValueType::INT && attr.second.type == common::attrtype::SQL_FLOAT)
+            if (value_list[attr.second.order].type == common::attrtype::SQL_FLOAT && attr.second.type == common::attrtype::SQL_FLOAT)
             {
-                value_list[attr.second.order].type = SQLValueType::FLOAT;
+                value_list[attr.second.order].type = common::attrtype::SQL_FLOAT;
                 value_list[attr.second.order].r = value_list[attr.second.order].i;
             } 
             else
@@ -42,7 +43,7 @@ bool check_insert(const std::string &table_name, std::vector<SQLValue> &value_li
             }
         }
         //the charSize
-        if (value_list[attr.second.order].type == SQLValueType::STRING)
+        if (value_list[attr.second.order].type == common::attrtype::SQL_CHAR)
         {
             if (value_list[attr.second.order].str.length() > attr.second.getSize())
             {
@@ -60,15 +61,15 @@ check whether the condition has correct type and attribute,
 */
 bool check_delete(const std::string &table_name, /*test const*/std::vector<Condition> &condition_list)
 {
-    auto cm =new CM::CatalogManager();
+    auto& cm = API::getCM();
     //check table 
-    if (!cm->checkTableByName(table_name))
+    if (!cm.checkTableByName(table_name))
     {
         std::cerr << "Table not found!" << std::endl;
         return false;
     }
 
-    auto tb = cm->getTableByName(table_name);
+    auto tb = cm.getTableByName(table_name);
     //check conditions
     for (const auto &cond: condition_list)
     {
@@ -94,15 +95,15 @@ check whether the condition has correct type and attribute
 */
 bool check_select(const std::string &table_name, /*test const*/ std::vector<Condition> &condition_list)
 {
-        auto cm =new CM::CatalogManager();
+        auto& cm = API::getCM();
         //check name
-        if (!cm->checkTableByName(table_name))
+        if (!cm.checkTableByName(table_name))
         {
             std::cerr << "Table not found!" << std::endl;
             return false;
         }
 
-        auto tb = cm->getTableByName(table_name);
+        auto tb = cm.getTableByName(table_name);
         //check conditions
         for (const auto &cond: condition_list)
         {

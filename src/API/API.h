@@ -28,13 +28,22 @@ public:
     static bool insertRecord(const std::string& table_name, const std::vector<SQLValue>value_list);
     static bool select(const std::string &table_name, const std::vector<Condition> &condition_list);
 private:
-    static bool API::displaySelect(const std::string& table_name, const std::vector<std::string>& raw_data);
     static API *api;
+
+    class GC {
+    public:
+        ~GC() {
+            API::destroy();
+        }
+    };
+    API() { static GC gc; }
+
+    static bool API::displaySelect(const std::string& table_name, const std::vector<std::string>& raw_data);
     BM::BufferManager buffer_manager;
     CM::CatalogManager catalog_manager;
     IM::IndexManager  index_manager;
     RM::RecordManager record_manager;
     Interpreter interpreter;
-    API() = default;
+    
 };
 #endif

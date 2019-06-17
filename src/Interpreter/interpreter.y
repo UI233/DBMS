@@ -245,9 +245,9 @@ attr_pair: Type_STRING attr_type op_unique
     }
     ;
 /*char(5)/int/float*/
-attr_type: Key_INTEGER { $$.type = SQLValueType::INT; }
-    | Key_FLOAT { $$.type = SQLValueType::FLOAT; }
-    | Key_CHAR '(' Type_INT ')' { $$.type = SQLValueType::STRING; $$.charSize = $3; }
+attr_type: Key_INTEGER { $$.type = common::attrtype::SQL_INT; }
+    | Key_FLOAT { $$.type = common::attrtype::SQL_FLOAT; }
+    | Key_CHAR '(' Type_INT ')' { $$.type = common::attrtype::SQL_CHAR; $$.charSize = $3; }
     ;
 
 op_unique: Key_UNIQUE { $$ = true; }
@@ -288,9 +288,9 @@ value_list: value_list ',' value
     ;
 
 value:
-    Type_INT { $$.type = SQLValueType::INT; $$.i = $1; }
-    | Type_REAL { $$.type = SQLValueType::FLOAT; $$.r = $1; }
-    | Type_ASTRING { $$.type = SQLValueType::STRING; $$.str = $1; }
+    Type_INT { $$.type = common::attrtype::SQL_INT; $$.i = $1; }
+    | Type_REAL { $$.type = common::attrtype::SQL_FLOAT; $$.r = $1; }
+    | Type_ASTRING { $$.type = common::attrtype::SQL_CHAR; $$.str = $1; }
     ;
 
 operator:

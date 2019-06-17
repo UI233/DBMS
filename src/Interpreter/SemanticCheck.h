@@ -1,6 +1,5 @@
 #ifndef SEMANTICCHECK_H
 #define SEMANTICCHECK_H
-#include "../CatalogManager/CatalogManager.h"
 #include <string>
 #include <iostream>
 #include <vector>

@@ -54,9 +54,9 @@ void CatalogManager::createTable(const std::string& table_name, const Table& sch
                 throw std::invalid_argument("The length of char exceeds 255.");
     }
 
-    auto primary_index_name = "pri_" + table_name + "_" + schema.primary_key;
-    indices_info.insert(std::make_pair(primary_index_name, std::make_pair(table_name, schema.primary_key)));
-    indices.insert(std::make_pair(table_name, std::make_pair(primary_index_name, schema.primary_key)));
+    // auto primary_index_name = "pri_" + table_name + "_" + schema.primary_key;
+    // indices_info.insert(std::make_pair(primary_index_name, std::make_pair(table_name, schema.primary_key)));
+    // indices.insert(std::make_pair(table_name, std::make_pair(primary_index_name, schema.primary_key)));
     tables.insert(std::make_pair(table_name, schema));
     modified = true;
 }
@@ -77,8 +77,8 @@ std::vector<std::string> CatalogManager::dropTable(const std::string& table_name
     if (pr.first != indices.end())
         indices.erase(pr.first->first);
 
-    modified = true;
     tables.erase(itr);
+    modified = true;
 
     return std::move(res);
 }
@@ -128,14 +128,14 @@ void CatalogManager::forceWrite() {
         for (unsigned int i = 0; i < unique_bytes; i++)
             uniques[i] = 0u;
 
+        int i = 0;
         for(auto &attr: table.second.attrs) {
-            for(unsigned int i = 0; i < attr_sz; ++i) {
-                unsigned int num = i / 8u;
-                unsigned int bias = i % 8u;
+            unsigned int num = i / 8u;
+            unsigned int bias = i % 8u;
 
-                if(attr.second.unique)
-                    uniques[num] |= 0x80u >> bias;
-            }
+            if(attr.second.unique)
+                uniques[num] |= 0x80u >> bias;
+            ++i;
         }
         meta.write(uniques.get(), unique_bytes);
 
@@ -260,6 +260,7 @@ void CatalogManager::createIndex(const std::string &index_name, const std::strin
         throw std::invalid_argument("Invalid attribute");
 
     indices.insert(std::make_pair(table_name, IndexInfo(index_name, attr_name)));
+    indices_info.insert(std::make_pair(index_name, IndexInfo(table_name, attr_name)));
     modified = true;
 }
 

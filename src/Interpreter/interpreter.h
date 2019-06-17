@@ -14,6 +14,8 @@
 #include <exception>
 #include "lex.yy.h"
 #include <string>
+#include "Table.h"
+
 
 /*the parsed request */
 extern QueryRequest* query;

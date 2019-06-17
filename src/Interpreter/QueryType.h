@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include "common.h"
 
 /*>=,<=,>,<,<>,=*/
 enum class Operator
@@ -38,7 +39,7 @@ enum class SQLValueType
 /*value and type*/
 struct SQLValue
 {
-    SQLValueType type;
+    common::attrtype::SQL_TYPE type;
     int i;
     float r;
     std::string str;
@@ -47,7 +48,7 @@ struct SQLValue
 struct attrValue
 {
     std::string attrName;
-    SQLValueType type;
+    common::attrtype::SQL_TYPE type;
     bool unique = false;
     size_t charSize; // charSize does not include the terminating zero of string!
 };

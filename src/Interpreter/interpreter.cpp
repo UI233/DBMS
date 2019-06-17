@@ -129,7 +129,7 @@ void doParse()
 //semantic test
 void execQuery()
 {
-	auto catalogManager=new CM::CatalogManager();
+    auto& catalog_manager = API::getCM();
 
 	bool isPassSemanticCheck=true;
     switch(query->getQueryType())
@@ -208,10 +208,12 @@ void execQuery()
 			                 throw std::invalid_argument("Table already exists");
 			            }
 			        }
-					auto tb = new Table();
-					createQueryToTable(create_table_query,*tb);
-					catalogManager->createTable(create_table_query->table_name, *tb);
-					catalogManager->createIndex(create_table_query->table_name,create_table_query->primary_key_name,primary_index_name);
+                    Table tb;
+					createQueryToTable(create_table_query,tb);
+					catalog_manager.createTable(create_table_query->table_name, tb);
+                    // Modified by UI
+					//catalogManager->createIndex(create_table_query->table_name,create_table_query->primary_key_name,primary_index_name);
+                    catalog_manager.createIndex(primary_index_name, create_table_query->table_name, create_table_query->primary_key_name);
 					//execute
 					auto r = API::createTable(create_table_query->table_name,create_table_query->primary_key_name,primary_index_name);
 				}
@@ -278,9 +280,9 @@ void execQuery()
 			auto drop_index_query = dynamic_cast<DropIndexQuery *>(query);
 			if (drop_index_query)
 			{
-				std::string tableName = catalogManager->getIndex(drop_index_query->index_name)->first;
+				std::string tableName = catalog_manager.getIndex(drop_index_query->index_name)->first;
 				/*true if such index exist*/
-				isPassSemanticCheck=catalogManager->checkIndex(tableName,drop_index_query->index_name);
+				isPassSemanticCheck=catalog_manager.checkIndex(tableName,drop_index_query->index_name);
 				if(isPassSemanticCheck)
 				{
 					auto r = API::dropIndex(drop_index_query->index_name);
@@ -326,15 +328,16 @@ int main(int argc, char *argv[])
 void createQueryToTable(const CreateTableQuery * query,Table& tb)
 {
 	tb.primary_key=query->primary_key_name;
-	auto newattr=new common::attrtype();
+    common::attrtype newattr;
 	unsigned int order=0;
 	for(auto &attr:query->attr_list)
 	{
-		newattr->type=common::attrtype::SQL_TYPE((int)(attr.type));
-		newattr->unique=attr.unique;
-		newattr->size=attr.charSize;
-		newattr->order=(order++);
+		newattr.type=common::attrtype::SQL_TYPE((int)(attr.type));
+        // UI: mark the primary key as unique
+		newattr.unique=(attr.unique) || (attr.attrName == query->primary_key_name);
+		newattr.size=attr.charSize;
+		newattr.order=(order++);
         // modified by UI 13:07
-		tb.attrs.insert(std::pair<std::string, common::attrtype>(attr.attrName, *newattr));
+		tb.attrs.insert(std::pair<std::string, common::attrtype>(attr.attrName, newattr));
 	}
 }

@@ -9,7 +9,6 @@ API* API::api(nullptr);
 void API::exec() {
     init();
     api->interpreter.read_command_loop();
-    destroy();
 }
 
 BM::BufferManager& API::getBM() {
@@ -364,15 +363,15 @@ bool API::select(const std::string &table_name, const std::vector<Condition> &co
         cond.push_back(RM::Condition((int)it.op));
         switch(it.val.type)
         {
-            case SQLValueType::INT:
+            case common::attrtype::SQL_INT:
                 str.resize(sizeof(int));
                 memcpy(&str[0],(char *)&it.val.i,sizeof(int));
                 break;
-            case SQLValueType::FLOAT:
+            case common::attrtype::SQL_FLOAT:
                 str.resize(sizeof(float));
                 memcpy(&str[0],(char *)&(it.val.r),sizeof(float));
                 break;
-            case SQLValueType::STRING:
+            case common::attrtype::SQL_CHAR:
                 str.resize(it.val.str.size());
                 memcpy(&str[0],it.val.str.c_str(),it.val.str.size());
                 break;
@@ -437,15 +436,15 @@ bool API::deleteOperation(const std::string &table_name, const std::vector<Condi
         cond.push_back(RM::Condition((int)it.op));
         switch(it.val.type)
         {
-            case SQLValueType::INT:
+            case common::attrtype::SQL_INT:
                 str.resize(sizeof(int));
                 memcpy(&str[0],(char *)&it.val.i,sizeof(int));
                 break;
-            case SQLValueType::FLOAT:
+            case common::attrtype::SQL_FLOAT:
                 str.resize(sizeof(float));
                 memcpy(&str[0],(char *)&(it.val.r),sizeof(float));
                 break;
-            case SQLValueType::STRING:
+            case common::attrtype::SQL_CHAR:
                 str.resize(it.val.str.size());
                 memcpy(&str[0],it.val.str.c_str(),it.val.str.size());
                 break;

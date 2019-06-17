@@ -916,15 +916,15 @@ yyreduce:
 		break; }
 	case 28:
 #line 248 "interpreter.y"
-	{ yyval.attr.type = SQLValueType::INT; ;
+	{ yyval.attr.type = common::attrtype::SQL_INT; ;
 	break; }
 	case 29:
 #line 249 "interpreter.y"
-	{ yyval.attr.type = SQLValueType::FLOAT; ;
+	{ yyval.attr.type = common::attrtype::SQL_FLOAT; ;
 	break; }
 	case 30:
 #line 250 "interpreter.y"
-	{ yyval.attr.type = SQLValueType::STRING; yyval.attr.charSize = yyvsp[-1].i; ;
+	{ yyval.attr.type = common::attrtype::SQL_CHAR; yyval.attr.charSize = yyvsp[-1].i; ;
 	break; }
 	case 31:
 #line 253 "interpreter.y"
@@ -972,15 +972,15 @@ yyreduce:
 		break; }
 	case 38:
 #line 291 "interpreter.y"
-	{ yyval.val.type = SQLValueType::INT; yyval.val.i = yyvsp[0].i; ;
+	{ yyval.val.type = common::attrtype::SQL_INT; yyval.val.i = yyvsp[0].i; ;
 	break; }
 	case 39:
 #line 292 "interpreter.y"
-	{ yyval.val.type = SQLValueType::FLOAT; yyval.val.r = yyvsp[0].r; ;
+	{ yyval.val.type = common::attrtype::SQL_FLOAT; yyval.val.r = yyvsp[0].r; ;
 	break; }
 	case 40:
 #line 293 "interpreter.y"
-	{ yyval.val.type = SQLValueType::STRING; yyval.val.str = yyvsp[0].str; ;
+	{ yyval.val.type = common::attrtype::SQL_CHAR; yyval.val.str = yyvsp[0].str; ;
 	break; }
 	case 41:
 #line 297 "interpreter.y"
