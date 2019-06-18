@@ -452,6 +452,24 @@ bool API::select(const std::string &table_name, const std::vector<Condition> &co
     return r;
 }
 
+void API::removeIndices(const std::vector<int> &ids, std::string table_name) {
+
+    auto& catalog_manager = API::getCM();
+    auto& index_manager = API::getIM();
+    auto& record_manager = API::getRM();
+
+    Table table = catalog_manager.getTableByName(table_name).value();
+    for (auto attr: table.attrs) {
+        auto index = catalog_manager.getIndexName(table_name, attr.first);
+        if (index != ""){
+            size_t offset = table.getOffset(attr.first);
+            for (auto id : ids) {
+                auto raw_data = record_manager.getRawData(table_name, id);
+                index_manager.remove(index, (unsigned char*)(raw_data.c_str() + offset));
+            }
+        }
+    }
+}
 
 bool API::deleteOperation(const std::string &table_name, const std::vector<Condition> &condition_list) {
     auto& catalog_manager = API::getCM();
@@ -478,7 +496,7 @@ bool API::deleteOperation(const std::string &table_name, const std::vector<Condi
     {
         isOptimalChance=false;
     }
-
+   
     for (const auto &it: condition_list)
     {
         colName.push_back(it.name);
@@ -515,8 +533,8 @@ bool API::deleteOperation(const std::string &table_name, const std::vector<Condi
         }
         if(r==true)
         {
+            API::removeIndices({ equalID }, table_name);
             r=record_manager.removeRecord(table_name,equalID);
-            ids.push_back(equalID);
             deleteNum=1;
         }
         else
@@ -528,24 +546,12 @@ bool API::deleteOperation(const std::string &table_name, const std::vector<Condi
     else
     {
         r= record_manager.selectRecord(table_name,colName,cond,operand,records,ids);
+        API::removeIndices(ids, table_name);
         r= record_manager.removeRecord(table_name,ids);
         deleteNum=ids.size();
     }
 
-    auto indices = catalog_manager.getAllIndices(table_name);
-
     // remove the index
-    Table table = catalog_manager.getTableByName(table_name).value();
-    for (auto attr: table.attrs) {
-        auto index = catalog_manager.getIndexName(table_name, attr.first);
-        if (index != ""){
-            size_t offset = table.getOffset(attr.first);
-            for (auto id : ids) {
-                auto raw_data = record_manager.getRawData(table_name, id);
-                index_manager.remove(index, (unsigned char*)(raw_data.c_str() + offset));
-            }
-        }
-    }
     std::cout<<"Query Ok "<<ids.size()<<" rows affected ";
     return r;
 }

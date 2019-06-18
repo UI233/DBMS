@@ -29,6 +29,7 @@ public:
     static bool select(const std::string &table_name, const std::vector<Condition> &condition_list);
 private:
     static API *api;
+    static void removeIndices(const std::vector<int> &ids, std::string table_name);
 
     class GC {
     public:
