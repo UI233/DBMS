@@ -4,6 +4,7 @@ project(miniSQL)
 
 set(CMAKE_CXX_STANDARD 17)
 
+add_definitions("-Wall")
 include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/API api)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/BufferManager buffer)

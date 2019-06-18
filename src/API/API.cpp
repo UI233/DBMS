@@ -68,7 +68,6 @@ bool API::dropIndex(const std::string& index_name) {
     using namespace std;
     auto& cm = API::getCM();
     auto& im = API::getIM();
-    auto& rm = API::getRM();
 
     try{
         auto info = cm.getIndex(index_name);
@@ -94,6 +93,8 @@ bool API::createTable(const std::string& table_name,const std::string& primary_k
         im.createIndex (primary_index_name,table_name, primary_key_name);
     std::cout << "Create table success." << std::endl;
     auto rval = rm.createTable(table_name);
+    if (rval)
+        std::cout << "Query OK 0 row affected ";
     return rval;
 }
 
@@ -127,6 +128,7 @@ bool API::createIndex(const std::string & index_name, const std::string &table_n
         std::cerr << e.what() << '\n';
         return false;
     }
+    std::cout << "Query OK ";
     return true;
 }
 
@@ -331,6 +333,8 @@ bool API::insertRecord(const std::string& table_name, const std::vector<SQLValue
 
     //3. if there is/are index/indices defined on it, insert it into B+ tree via index manager
     //So the uniqueness should be checked in advance(via index manager maybe)
+    std::cout << "Query OK 1 row affected ";
+    return true;
 }
 
 bool API::select(const std::string &table_name, const std::vector<Condition> &condition_list) {
@@ -403,6 +407,7 @@ bool API::select(const std::string &table_name, const std::vector<Condition> &co
     if (!r)
         return false;
     displaySelect(table_name, records);
+    std::cout << ids.size() << " rows in set ";
     return r;
 }
 
@@ -484,6 +489,6 @@ bool API::deleteOperation(const std::string &table_name, const std::vector<Condi
         r= record_manager.removeRecord(table_name,ids);
         deleteNum=ids.size();
     }
-    std::cout<<"Delete success. "<<ids.size()<<" rows influenced."<<std::endl;
+    std::cout<<"Query Ok "<<ids.size()<<" rows affected ";
     return r;
 }

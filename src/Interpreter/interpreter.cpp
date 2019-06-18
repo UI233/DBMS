@@ -1,5 +1,6 @@
 #include "interpreter.h"
 #include "../API/API.h"
+#include <ctime>
 
 QueryRequest *query = nullptr;
 
@@ -128,8 +129,13 @@ void doParse()
     } 
     else
     {
-        if (execQuery() && file_executing == 0) {
-            flush();
+		auto st = clock();
+		bool queryok = execQuery();
+		auto ed = clock();
+        if (queryok) {
+			std::cout << "("<< (float)(ed - st) / (float)CLOCKS_PER_SEC << " sec)\n";	
+			if (file_executing == 0)
+				flush();
         }
     }
 }
@@ -144,6 +150,7 @@ bool execQuery()
     {
         case QueryType::INSERT:
 		{	auto insert_query = dynamic_cast<InsertQuery *>(query);
+			bool r(false);
 			if (insert_query)
 			{
 				isPassSemanticCheck=check_insert(insert_query->table_name, insert_query->value_list);
@@ -153,8 +160,8 @@ bool execQuery()
 				}
 				delete insert_query;
 				query = nullptr;
-				return isPassSemanticCheck;
 			}
+			return isPassSemanticCheck;
 			break;
 		}
         case QueryType::DELETE:
@@ -194,7 +201,7 @@ bool execQuery()
           
         case QueryType::CREATE_TABLE:
 		{
-            bool r;
+            bool r(false);
 			auto create_table_query = dynamic_cast<CreateTableQuery *>(query);
 			std::string primary_index_name;
 			if (create_table_query)
@@ -281,8 +288,8 @@ bool execQuery()
 				
 				delete drop_table_query;
 				query = nullptr;
-				return r;
 			}
+            return r;
 			break;
 		}
 
