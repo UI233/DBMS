@@ -3,7 +3,6 @@
 #include <ctime>
 
 QueryRequest *query = nullptr;
-
 /*input of every line*/
 char current_input[INPUT_LENGTH];
 /*the final command*/
@@ -16,7 +15,7 @@ size_t input_len;
 size_t temp_len;
 char *temp_ptr;
 bool isExit = false;
-int file_executing = 0;
+extern int file_executing = 0;
 
 void flush() {
     API::getCM().forceWrite();
@@ -96,7 +95,10 @@ void execFile(const std::string &file_name)
 				std::strncpy(standard_input, temp_input, temp_ptr - temp_input);
 				temp_ptr = temp_input;
 				memset(temp_input, 0, INPUT_LENGTH);
-				/*test*/std::cout << "Command:" << standard_input << std::endl;
+#ifdef DEBUG
+            /*test*/std::cout << "Command:" << standard_input << std::endl;
+#endif // DEBUG
+
 				input_len = std::strlen(standard_input);
 				/*if we find a standard command we just set it to lex then parse, examine and execute it*/
 				yy_switch_to_buffer(yy_scan_string(standard_input));
@@ -129,13 +131,15 @@ void doParse()
     } 
     else
     {
-		auto st = clock();
+        clock_t st, ed;
+        if (file_executing == 0)
+            st = clock();
 		bool queryok = execQuery();
-		auto ed = clock();
-        if (queryok) {
-			std::cout << "("<< (float)(ed - st) / (float)CLOCKS_PER_SEC << " sec)\n";	
-			if (file_executing == 0)
-				flush();
+        if(file_executing == 0)
+            ed = clock();
+        if (queryok && file_executing == 0) {
+            std::cout <<  " ("<< (float)(ed - st) / (float)CLOCKS_PER_SEC << " sec)\n";	
+            flush();
         }
     }
 }
