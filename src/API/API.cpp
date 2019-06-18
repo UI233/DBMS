@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstring>
 #include <cstdio>
+#include <iomanip>
 
 API* API::api(nullptr);
 
@@ -153,46 +154,86 @@ bool API::displaySelect(const std::string& table_name, const std::vector<std::st
         }
         // Todo
         auto attr_num = table->getAttrNum();
-        printf("-");
-        for (int i = 0; i < 12 * attr_num; i++) {
-            printf("-");
+
+        std::vector<int> attrLen;
+        int totalLen = 0;
+        for (const auto &attr : attr_temp) {
+            auto attr_type = table->attrs[attr.first];
+            if (attr_type.type == common::attrtype::SQL_INT)
+                attrLen.push_back(12);
+            if (attr_type.type == common::attrtype::SQL_CHAR)
+                attrLen.push_back(12);
+            if (attr_type.type == common::attrtype::SQL_FLOAT)
+                attrLen.push_back(12);
         }
-        printf("-\n");
-        printf("|");
-        for (const auto &attr : attr_temp)
-            printf("%12s", attr.first.c_str());
-        printf("|\n");
-        printf("|");
-        for (int i = 0; i < 12 * attr_num; i++) {
-            printf("-");
-        }
-        printf("|\n");
 
         for (const auto &data : raw_data) {
-            printf("|");
+            int num = 0;
             for (const auto &attr : attr_temp) {
                 int offset = table->getOffset(attr.first);
                 auto attr_type = table->attrs[attr.first];
-                if (attr_type.type == common::attrtype::SQL_INT)
-                    printf("%12d", *(int*)&data[offset]);
                 if (attr_type.type == common::attrtype::SQL_CHAR) {
                     char *p = new char[attr_type.size + 1];
                     memcpy(p, (void*)(data.c_str() + offset), attr_type.getSize());
                     p[attr_type.getSize()] = '\0';
-                    printf("%12s", p);
+                    if (strlen(p) + 2 > attrLen[num])
+                        attrLen[num] = strlen(p) + 2;
+                    delete[] p;
+                }
+                num++;
+            }
+        }
+
+        for (const auto &len : attrLen) {
+            totalLen += len;
+        }
+
+        printf("┌");
+        for (int i = 0; i < totalLen; i++) {
+            printf("─");
+        }
+        printf("┐\n");
+        printf("│");
+        int num = 0;
+        for (const auto &attr : attr_temp) {
+            std::cout << std::setw(attrLen[num]) << attr.first.c_str();
+            num++;
+        }
+
+        printf("│\n");
+        printf("┝");
+        for (int i = 0; i < totalLen; i++) {
+            printf("━");
+        }
+        printf("┥\n");
+
+        for (const auto &data : raw_data) {
+            printf("│");
+            int num = 0;
+            for (const auto &attr : attr_temp) {
+                int offset = table->getOffset(attr.first);
+                auto attr_type = table->attrs[attr.first];
+                if (attr_type.type == common::attrtype::SQL_INT)
+                    std::cout << std::setw(attrLen[num]) << *(int*)&data[offset];
+                if (attr_type.type == common::attrtype::SQL_CHAR) {
+                    char *p = new char[attr_type.size + 1];
+                    memcpy(p, (void*)(data.c_str() + offset), attr_type.getSize());
+                    p[attr_type.getSize()] = '\0';
+                    std::cout << std::setw(attrLen[num]) << p;
                     delete[] p;
                 }
                 if (attr_type.type == common::attrtype::SQL_FLOAT)
-                    printf("%12f", *(float*)&data[offset]);
+                    std::cout << std::setw(attrLen[num]) << *(float*)&data[offset];
+                num++;
             }
-            printf("|\n");
+            printf("│\n");
         }
 
-        printf("-");
-        for (int i = 0; i < 12 * attr_num; i++) {
-            printf("-");
+        printf("└");
+        for (int i = 0; i < totalLen; i++) {
+            printf("─");
         }
-        printf("-\n");
+        printf("┘\n");
     }
     catch (const std::exception& e) {
         std::cerr << e.what() << '\n';

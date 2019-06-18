@@ -7,7 +7,7 @@ namespace BM{
     // the size of a single page(in byte)
     static constexpr unsigned int PAGESIZE = 4096;
     // the capacity of pages 
-    static constexpr unsigned int POOLSIZE = 40;
+    static constexpr unsigned int POOLSIZE = 10000;
 
    namespace imp{
     class FileManager{
