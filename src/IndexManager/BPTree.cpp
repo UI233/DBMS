@@ -74,14 +74,12 @@ bool BPTree::add(unsigned char* _key, int _value)
 {
     memcpy(key, _key, length);
     value = _value;
-    cout<<root<<endl;
     int res = root < 0 ? BPTREE_ADD : add(root);
   //  cout<<"cccp"<<endl;
     if (res == BPTREE_ADD)
     {
         // Create new root
         int newRoot = getFirstEmpty();
-        cout<<newRoot<<endl;
      //   cout<<"Before new"<<endl;
         BPTreeElement* node = new BPTreeElement(fileName, newRoot, length, root < 0, root < 0 ? -1 : root);
      //   cout<<"After new"<<endl;
@@ -92,7 +90,6 @@ bool BPTree::add(unsigned char* _key, int _value)
         root = newRoot;
     }
     updateHeader();
-    cout<<"after updateHeader"<<endl;
     return res != BPTREE_FAILED;
 }
 

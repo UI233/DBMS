@@ -30,7 +30,7 @@ public:
 void doParse();
 
 /*Call api to execute the query request-semantic examine*/
-void execQuery();
+bool execQuery();
 
 /*run file to execute every command in it*/
 void execFile(const std::string &file_name);

@@ -69,10 +69,8 @@ bool IndexManager::createIndex(string indexName, string tableName, string attrib
     optional<Table> table = manager.getTableByName(tableName);
     if (!table)
         return false;
-    cout<<"table"<<endl;
     common::attrtype type=table->attrs[attributeName];
     int keyLength=type.getSize();
-    cout<<"create file"<<endl;
     BPTree::createFile(common::getIndexFile(indexName, tableName, attributeName), keyLength);
     return true;
 }

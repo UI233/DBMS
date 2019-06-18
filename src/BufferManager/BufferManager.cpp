@@ -35,6 +35,7 @@ void BufferManager::deleteFile(const std::string &path) {
             if (v.first.second == path) {
                 auto idx = v.second;
                 pages[idx].unpin();
+                pages[idx].file.stream.close();
                 pages[idx].is_open = false;
                 file2page.erase(v.first);
                 existed = true;
@@ -185,4 +186,12 @@ void BufferManager::close(Page* page) {
     auto info = page->getInfo();
     file2page.erase(info);
     page->close();
+}
+
+void BufferManager::flush() {
+    for (auto& page : file2page) {
+        int idx = page.second;
+        if (pages[idx].isValid())
+            pages[idx].forceWrite();
+    }
 }

@@ -113,6 +113,9 @@ void CatalogManager::forceWrite() {
         out.write(str.c_str(), str.length());
         out.write(&zero, 1);
     };
+
+    if (!modified)
+        return;
     // write the table definition back to disk
     static const std::string meta_file("tables.tb");
     std::ofstream meta(meta_file, std::ios::binary);
@@ -157,6 +160,8 @@ void CatalogManager::forceWrite() {
         writeString(meta, index.first);
         writeString(meta, index.second.second);
     }
+
+    modified = false;
 }
 
 void CatalogManager::loadFromFile() {
