@@ -247,7 +247,7 @@ bool API::displaySelect(const std::string& table_name, const std::vector<std::st
 //bool API::displaySelect(const std::string& table_name, const std::vector<std::string>& raw_data) {
 //    auto& cm = API::getCM();
 //    auto& rm = API::getRM();
-//    try {
+//    try {(
 //        auto table = cm.getTableByName(table_name);
 //        using cmp_t = std::pair<std::string, int>;
 //        std::vector<cmp_t> attr_temp;
@@ -516,6 +516,7 @@ bool API::deleteOperation(const std::string &table_name, const std::vector<Condi
         if(r==true)
         {
             r=record_manager.removeRecord(table_name,equalID);
+            ids.push_back(equalID);
             deleteNum=1;
         }
         else
@@ -529,6 +530,21 @@ bool API::deleteOperation(const std::string &table_name, const std::vector<Condi
         r= record_manager.selectRecord(table_name,colName,cond,operand,records,ids);
         r= record_manager.removeRecord(table_name,ids);
         deleteNum=ids.size();
+    }
+
+    auto indices = catalog_manager.getAllIndices(table_name);
+
+    // remove the index
+    Table table = catalog_manager.getTableByName(table_name).value();
+    for (auto attr: table.attrs) {
+        auto index = catalog_manager.getIndexName(table_name, attr.first);
+        if (index != ""){
+            size_t offset = table.getOffset(attr.first);
+            for (auto id : ids) {
+                auto raw_data = record_manager.getRawData(table_name, id);
+                index_manager.remove(index, (unsigned char*)(raw_data.c_str() + offset));
+            }
+        }
     }
     std::cout<<"Query Ok "<<ids.size()<<" rows affected ";
     return r;

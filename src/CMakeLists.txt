@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 3.0)
 project(miniSQL)
 
 set(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_BUILD_TYPE "Release")
+SET(CMAKE_BUILD_TYPE "Debug")
 
-add_definitions("-Wall -finput-charset=utf-8 -O3")
+# add_definitions("-Wall -finput-charset=utf-8 -O3")
 include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/API api)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/BufferManager buffer)
