@@ -34,6 +34,7 @@ BPTreeElement::BPTreeElement(string _fileName, int _id, int _length):
         ptrs.push_back(*reinterpret_cast<int*>(data + bias + length));
         bias += length + 4;
     }
+    page->unpin();
 }
 
 // Constructor for an empty node
@@ -74,12 +75,14 @@ BPTreeElement::~BPTreeElement()
             bias += length + 4;
         }
         page->setDirty();
+        page->unpin();
     }
 
     // Clean up keys
     for (auto k : keys)
         if (k != nullptr)
             delete[] k;
+
 }
 // Get node size
 int BPTreeElement::getSize() const

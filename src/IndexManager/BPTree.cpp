@@ -53,6 +53,7 @@ BPTree::BPTree(string _fileName): fileName(_fileName)
     firstEmpty = *(reinterpret_cast<int*>(data + 16));
 
     key = new unsigned char[length];
+    page->unpin();
   //  cout<<order<<length<<nodeCount<<root<<firstEmpty<<endl;
 }
 
@@ -292,6 +293,7 @@ int BPTree::getFirstEmpty()
     int ret = firstEmpty;
     Page* page = bm.getPage(fileName+ ".mdb", firstEmpty);
     firstEmpty = *(reinterpret_cast<int*>(&(page->data[0])));
+    page->unpin();
     return ret;
 }
 
@@ -303,6 +305,7 @@ void BPTree::removeBlock(int id)
     Page* page = bm.getPage(fileName+ ".mdb", id);
     memcpy(&(page->data[0]), &firstEmpty, 4);
     firstEmpty = id;
+    page->unpin();
 }
 
 // Update header information
@@ -316,6 +319,7 @@ void BPTree::updateHeader()
     memcpy(data + 16, &firstEmpty, 4);
 
     page->setDirty();
+    page->unpin();
 }
 
 #ifdef DEBUG
