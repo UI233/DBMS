@@ -15,6 +15,12 @@ size_t input_len;
 size_t temp_len;
 char *temp_ptr;
 bool isExit = false;
+int file_executing = 0;
+
+void flush() {
+    API::getCM().forceWrite();
+    API::getBM().flush();
+}
 
 void Interpreter::read_command_loop ()
 {
@@ -122,12 +128,14 @@ void doParse()
     } 
     else
     {
-        execQuery();
+        if (execQuery() && file_executing == 0) {
+            flush();
+        }
     }
 }
 
 //semantic test
-void execQuery()
+bool execQuery()
 {
     auto& catalog_manager = API::getCM();
 
@@ -145,7 +153,7 @@ void execQuery()
 				}
 				delete insert_query;
 				query = nullptr;
-				return;
+				return isPassSemanticCheck;
 			}
 			break;
 		}
@@ -162,29 +170,31 @@ void execQuery()
 				}
 				delete delete_query;
 				query = nullptr;
-				return;
+				return isPassSemanticCheck;
 			}
 			break;
 		}
         case QueryType::SELECT:
 		{
 			auto select_query = dynamic_cast<SelectQuery *>(query);
+            bool r = false;
 			if (select_query)
 			{
 				isPassSemanticCheck=check_select(select_query->table_name,select_query->condition_list);
 				if(isPassSemanticCheck)
 				{
-					auto r = API::select(select_query->table_name,select_query->condition_list);
+					r = API::select(select_query->table_name,select_query->condition_list);
 				}
 				delete select_query;
 				query = nullptr;
-				return;
 			}
+            return r;
 			break;
 		}
           
         case QueryType::CREATE_TABLE:
 		{
+            bool r;
 			auto create_table_query = dynamic_cast<CreateTableQuery *>(query);
 			std::string primary_index_name;
 			if (create_table_query)
@@ -216,7 +226,7 @@ void execQuery()
                     if (create_table_query->primary_key_name != "")
                         catalog_manager.createIndex(primary_index_name, create_table_query->table_name, create_table_query->primary_key_name);
 					//execute
-					auto r = API::createTable(create_table_query->table_name,create_table_query->primary_key_name,primary_index_name);
+					r = API::createTable(create_table_query->table_name,create_table_query->primary_key_name,primary_index_name);
 				}
 				catch(std::exception& e)
 				{
@@ -225,20 +235,21 @@ void execQuery()
 				
 				delete create_table_query;
 				query = nullptr;
-				return;
 			}
+            return r;
 			break;
 		}
         case QueryType::CREATE_INDEX:
 		{
 			auto create_index_query = dynamic_cast<CreateIndexQuery *>(query);
+            bool r(false);
 			if (create_index_query)
 			{
 				try
 				{
                     // modified by UI 13:03
 					// catalogManager->createIndex(create_index_query->table_name, create_index_query->attr_name, create_index_query->index_name);
-					auto r = API::createIndex(create_index_query->index_name, create_index_query->table_name, create_index_query->attr_name);
+					r = API::createIndex(create_index_query->index_name, create_index_query->table_name, create_index_query->attr_name);
 				}
 				catch(std::exception& e)
 				{
@@ -246,7 +257,7 @@ void execQuery()
 				}
 				delete create_index_query;
 				query = nullptr;
-				return;
+				return r;
 			}
 			break;
 		}
@@ -254,14 +265,14 @@ void execQuery()
         case QueryType::DROP_TABLE:
 		{
 			auto drop_table_query = dynamic_cast<DropTableQuery *>(query);
+            bool r(false);
 			if (drop_table_query)
 			{
 				try
 				{
                     // modified by UI 13:03
 					// catalogManager->dropTable(drop_table_query->table_name);
-					auto r = API::dropTable(drop_table_query->table_name);
-
+					r = API::dropTable(drop_table_query->table_name);
 				}
 				catch(std::exception& e)
 				{
@@ -270,7 +281,7 @@ void execQuery()
 				
 				delete drop_table_query;
 				query = nullptr;
-				return;
+				return r;
 			}
 			break;
 		}
@@ -278,6 +289,7 @@ void execQuery()
         case QueryType::DROP_INDEX:
 		{
 			auto drop_index_query = dynamic_cast<DropIndexQuery *>(query);
+            bool r(false);
 			if (drop_index_query)
 			{
 				std::string tableName = catalog_manager.getIndex(drop_index_query->index_name)->first;
@@ -285,7 +297,7 @@ void execQuery()
 				isPassSemanticCheck=catalog_manager.checkIndex(tableName,drop_index_query->index_name);
 				if(isPassSemanticCheck)
 				{
-					auto r = API::dropIndex(drop_index_query->index_name);
+					r = API::dropIndex(drop_index_query->index_name);
 				}
 				else
 				{
@@ -294,7 +306,7 @@ void execQuery()
 
 				delete drop_index_query;
 				query = nullptr;
-				return;
+				return r;
 			}
 			break;
 		}
@@ -302,17 +314,19 @@ void execQuery()
         case QueryType::EXEC_FILE:
 		{
 			auto exec_file_query = dynamic_cast<ExecFileQuery *>(query);
-			if (exec_file_query)
-			{
-				execFile(exec_file_query->file_name);
-				delete exec_file_query;
-				query = nullptr;
-				return;
-			}
+            if (exec_file_query)
+            {
+                file_executing++;
+                execFile(exec_file_query->file_name);
+                file_executing--;
+                delete exec_file_query;
+                query = nullptr;
+            }
+            return exec_file_query;
 		}
 
     }
-
+    return false;
 }
 
 void createQueryToTable(const CreateTableQuery * query,Table& tb)

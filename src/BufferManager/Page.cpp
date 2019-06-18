@@ -9,20 +9,21 @@ Page::~Page() {
 }
 
 void Page::forceWrite() {
-    dirty = false;
     if (!is_open)
         throw std::invalid_argument("Invalid page");
     auto & write = file.stream;
 
     if(!write.good())
         throw std::invalid_argument("Invalid page");
-
-    write.seekp(page_index * PAGESIZE, write.beg);
-    auto before = write.tellp();
-    write.write((char *)&data[0], PAGESIZE);
-    write.flush();
-    if (!write.good() || write.tellp() - before != PAGESIZE)
-        throw std::runtime_error("Fail writting back");
+    if (dirty) {
+        write.seekp(page_index * PAGESIZE, write.beg);
+        auto before = write.tellp();
+        write.write((char *)&data[0], PAGESIZE);
+        write.flush();
+        if (!write.good() || write.tellp() - before != PAGESIZE)
+            throw std::runtime_error("Fail writting back");
+    }
+    dirty = false;
 }
 
 void Page::close() {

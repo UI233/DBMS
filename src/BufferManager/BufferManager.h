@@ -119,6 +119,9 @@ namespace BM{
         // @param: a pointer to a specified page
         void close(Page* page);
 
+        // flush all the dirty pages back to disk
+        void flush();
+
         BufferManager(const BufferManager &) = delete;
         BufferManager& operator = (const BufferManager &) = delete;
     private:

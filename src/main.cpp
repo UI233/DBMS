@@ -4,6 +4,5 @@
 
 #include "API/API.h"
 int main(){
-    API::init();
     API::exec();
 }

@@ -151,9 +151,9 @@ bool API::displaySelect(const std::string& table_name, const std::vector<std::st
         }
         // Todo
         auto attr_num = table->getAttrNum();
-        printf("--");
+        printf("-");
         for (int i = 0; i < 12 * attr_num; i++) {
-            printf("--");
+            printf("-");
         }
         printf("-\n");
         printf("|");
@@ -162,12 +162,12 @@ bool API::displaySelect(const std::string& table_name, const std::vector<std::st
         printf("|\n");
         printf("|");
         for (int i = 0; i < 12 * attr_num; i++) {
-            printf("--");
+            printf("-");
         }
         printf("|\n");
 
         for (const auto &data : raw_data) {
-            printf(" | ");
+            printf("|");
             for (const auto &attr : attr_temp) {
                 int offset = table->getOffset(attr.first);
                 auto attr_type = table->attrs[attr.first];
@@ -186,11 +186,11 @@ bool API::displaySelect(const std::string& table_name, const std::vector<std::st
             printf("|\n");
         }
 
-        printf("_");
+        printf("-");
         for (int i = 0; i < 12 * attr_num; i++) {
-            printf("--");
+            printf("-");
         }
-        printf("_\n");
+        printf("-\n");
     }
     catch (const std::exception& e) {
         std::cerr << e.what() << '\n';
@@ -252,7 +252,6 @@ bool API::displaySelect(const std::string& table_name, const std::vector<std::st
 insert_query->value_list*/
 bool API::insertRecord(const std::string& table_name, const std::vector<SQLValue> value_list)
 {
-
     //1. check uniqueness
     auto& rm=API::getRM();
     auto& cm = API::getCM();
@@ -297,7 +296,7 @@ bool API::insertRecord(const std::string& table_name, const std::vector<SQLValue
         if (itr.second.unique){
             auto index_name = cm.getIndexName(table_name, itr.first);
             if (index_name != ""){
-                if (im.find(index_name,(unsigned char*)data.c_str()) != -1){
+                if (im.find(index_name,(unsigned char*)raw_data.c_str()) != -1){
                     std::cerr<<"API::insertRecord duplicate record insert\n";
                     return false;
                 }
@@ -314,11 +313,9 @@ bool API::insertRecord(const std::string& table_name, const std::vector<SQLValue
         }
     }
 
-    // 等一下...如果有的话应该先从record得到id才能插入
     auto id = rm.insertRecord(table_name,data);
 
     //2. insert it via record manager and get the id back
-
     for (auto itr: table->attrs){
         auto offset = table->getOffset(itr.first);
         auto length = itr.second.getSize();
@@ -388,12 +385,15 @@ bool API::select(const std::string &table_name, const std::vector<Condition> &co
 
     if(isExecEqual)
     {
-        record=record_manager.getRawData(table_name,equalID);
-        r=record_manager.checkRecord(record.c_str(),table_name,colName,cond,operand);
-        if(r) {
-            // todo
-            records.push_back(record);
+        if (equalID != -1) {
+            record=record_manager.getRawData(table_name,equalID);
+            r=record_manager.checkRecord(record.c_str(),table_name,colName,cond,operand);
+            if(r) {
+                // todo
+                records.push_back(record);
+            }
         }
+        else r = false;
     }
     else
     {
@@ -459,10 +459,14 @@ bool API::deleteOperation(const std::string &table_name, const std::vector<Condi
         }
         operand.push_back(str);
     }
+
     if(isExecEqual==true)
     {
-        record=record_manager.getRawData(table_name,equalID);
-        r=record_manager.checkRecord(record.c_str(),table_name,colName,cond,operand);
+        r = false;
+        if (equalID != -1) {
+            record=record_manager.getRawData(table_name,equalID);
+            r=record_manager.checkRecord(record.c_str(),table_name,colName,cond,operand);
+        }
         if(r==true)
         {
             r=record_manager.removeRecord(table_name,equalID);
