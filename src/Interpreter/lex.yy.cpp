@@ -23,7 +23,6 @@
 
 #include <stdlib.h>
 #include <io.h>
-#include <process.h>
 
 /* Use prototypes in function declarations. */
 #define YY_USE_PROTOS
@@ -1365,6 +1364,7 @@ YY_BUFFER_STATE b;
 }
 
 
+#define YY_ALWAYS_INTERACTIVE 1
 #ifndef YY_ALWAYS_INTERACTIVE
 #ifndef YY_NEVER_INTERACTIVE
 extern int isatty YY_PROTO((int));

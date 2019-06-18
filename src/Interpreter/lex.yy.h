@@ -25,7 +25,6 @@
 
 #include <stdlib.h>
 #include <io.h>
-#include <process.h>
 
 
 /* Use prototypes in function declarations. */

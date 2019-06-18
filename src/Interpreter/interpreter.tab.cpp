@@ -44,7 +44,7 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
-#include "Interpreter.h"
+#include "interpreter.h"
 #include "ParseHelp.h"
 #include "interpreter.tab.h"
 
