@@ -38,7 +38,6 @@ void Interpreter::read_command_loop ()
                 std::strncpy(standard_input, temp_input, temp_ptr - temp_input);
                 temp_ptr = temp_input;
                 memset(temp_input, 0, INPUT_LENGTH);
-                /*test*/std::cout<<"Command:"<<standard_input<<std::endl;
                 input_len = std::strlen(standard_input);
                 /*if we find a standard command we just set it to lex then parse, examine and execute it*/
                 yy_switch_to_buffer(yy_scan_string(standard_input));
@@ -277,7 +276,7 @@ void execQuery()
 			if (drop_index_query)
 			{
 				/*true if such index exist*/
-				isPassSemanticCheck=CM.checkIndex(drop_index_query->index_name);
+				isPassSemanticCheck=CM.getIndex(drop_index_query->index_name);
 				if(isPassSemanticCheck)
 				{
 					auto r = Api::drop_index(drop_index_query->index_name);

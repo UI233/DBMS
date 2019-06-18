@@ -45,7 +45,6 @@ void Interpreter::read_command_loop ()
                 std::strncpy(standard_input, temp_input, temp_ptr - temp_input);
                 temp_ptr = temp_input;
                 memset(temp_input, 0, INPUT_LENGTH);
-                /*test*/std::cout<<"Command:"<<standard_input<<std::endl;
                 input_len = std::strlen(standard_input);
                 /*if we find a standard command we just set it to lex then parse, examine and execute it*/
                 yy_switch_to_buffer(yy_scan_string(standard_input));
@@ -132,13 +131,11 @@ void doParse()
     else
     {
         clock_t st, ed;
-        if (file_executing == 0)
-            st = clock();
+        st = clock();
 		bool queryok = execQuery();
-        if(file_executing == 0)
-            ed = clock();
+        ed = clock();
+        std::cout <<  " ("<< (float)(ed - st) / (float)CLOCKS_PER_SEC << " sec)\n";	
         if (queryok && file_executing == 0) {
-            std::cout <<  " ("<< (float)(ed - st) / (float)CLOCKS_PER_SEC << " sec)\n";	
             flush();
         }
     }
@@ -303,9 +300,8 @@ bool execQuery()
             bool r(false);
 			if (drop_index_query)
 			{
-				std::string tableName = catalog_manager.getIndex(drop_index_query->index_name)->first;
 				/*true if such index exist*/
-				isPassSemanticCheck=catalog_manager.checkIndex(tableName,drop_index_query->index_name);
+				isPassSemanticCheck=catalog_manager.getIndex(drop_index_query->index_name).has_value();
 				if(isPassSemanticCheck)
 				{
 					r = API::dropIndex(drop_index_query->index_name);
