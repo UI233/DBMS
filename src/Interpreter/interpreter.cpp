@@ -15,7 +15,7 @@ size_t input_len;
 size_t temp_len;
 char *temp_ptr;
 bool isExit = false;
-extern int file_executing = 0;
+int file_executing = 0;
 
 void flush() {
     API::getCM().forceWrite();
@@ -94,9 +94,7 @@ void execFile(const std::string &file_name)
 				std::strncpy(standard_input, temp_input, temp_ptr - temp_input);
 				temp_ptr = temp_input;
 				memset(temp_input, 0, INPUT_LENGTH);
-#ifdef DEBUG
             /*test*/std::cout << "Command:" << standard_input << std::endl;
-#endif // DEBUG
 
 				input_len = std::strlen(standard_input);
 				/*if we find a standard command we just set it to lex then parse, examine and execute it*/
@@ -131,11 +129,13 @@ void doParse()
     else
     {
         clock_t st, ed;
-        st = clock();
+        if(file_executing == 0)
+            st = clock();
 		bool queryok = execQuery();
-        ed = clock();
-        std::cout <<  " ("<< (float)(ed - st) / (float)CLOCKS_PER_SEC << " sec)\n";	
+        if(file_executing == 0)
+            ed = clock();
         if (queryok && file_executing == 0) {
+            std::cout <<  " ("<< (float)(ed - st) / (float)CLOCKS_PER_SEC << " sec)\n";	
             flush();
         }
     }

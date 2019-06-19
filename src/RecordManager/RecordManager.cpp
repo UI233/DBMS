@@ -34,7 +34,7 @@ std::string RecordManager::getRawData(const std::string &tableName, int id) {
     loadTable(tableName);
     loadRecord(id);
     std::string str;
-    str.resize(recordLength);
+    str.resize(recordLength, 0);
     memcpy(&str[0], &page->data[bias], recordLength);
     return str;
 }
@@ -55,7 +55,7 @@ int RecordManager::selectRecord(
         if (checkRecord(dataIn, tableName, colName, cond, operand))
         {
             std::string hit;
-            hit.resize(recordLength);
+            hit.resize(recordLength, 0);
             memcpy((void*)hit.c_str(), dataIn, recordLength);
 
             records.push_back(hit);

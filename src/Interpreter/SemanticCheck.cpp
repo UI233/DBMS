@@ -31,7 +31,7 @@ bool check_insert(const std::string &table_name, std::vector<SQLValue> &value_li
         //the order 
         if ((int)value_list[attr.second.order].type!=attr.second.type)
         {
-            if (value_list[attr.second.order].type == common::attrtype::SQL_FLOAT && attr.second.type == common::attrtype::SQL_FLOAT)
+            if (value_list[attr.second.order].type == common::attrtype::SQL_INT && attr.second.type == common::attrtype::SQL_FLOAT)
             {
                 value_list[attr.second.order].type = common::attrtype::SQL_FLOAT;
                 value_list[attr.second.order].r = value_list[attr.second.order].i;
@@ -71,7 +71,7 @@ bool check_delete(const std::string &table_name, /*test const*/std::vector<Condi
 
     auto tb = cm.getTableByName(table_name);
     //check conditions
-    for (const auto &cond: condition_list)
+    for (auto &cond: condition_list)
     {
         auto it = tb->attrs.find(cond.name);
         if (it == tb->attrs.end())
@@ -80,10 +80,15 @@ bool check_delete(const std::string &table_name, /*test const*/std::vector<Condi
             return false;
         }
         auto type = tb->attrs[cond.name].type;
-        if (type!= common::attrtype::SQL_TYPE((int)(cond.val.type)))
+        if (type!= common::attrtype::SQL_TYPE((int)(cond.val.type)) && !(type == common::attrtype::SQL_FLOAT && cond.val.type == (int)common::attrtype::SQL_INT))
         {
             std::cerr << "Type in conditions mismatch!" << std::endl;
             return false;
+        }
+
+        if (type == common::attrtype::SQL_FLOAT && (int)cond.val.type == common::attrtype::SQL_INT){
+            cond.val.type = common::attrtype::SQL_FLOAT;
+            cond.val.r = cond.val.i;
         }
     }
     return true;
@@ -105,7 +110,7 @@ bool check_select(const std::string &table_name, /*test const*/ std::vector<Cond
 
         auto tb = cm.getTableByName(table_name);
         //check conditions
-        for (const auto &cond: condition_list)
+        for (auto &cond: condition_list)
         {
             auto it = tb->attrs.find(cond.name);
             if (it == tb->attrs.end())
@@ -114,13 +119,18 @@ bool check_select(const std::string &table_name, /*test const*/ std::vector<Cond
                 return false;
             }
             auto type = tb->attrs[cond.name].type;
-            if (type!= common::attrtype::SQL_TYPE((int)(cond.val.type)))
+            if (type!= common::attrtype::SQL_TYPE((int)(cond.val.type)) && !(type == common::attrtype::SQL_FLOAT && (int)cond.val.type == common::attrtype::SQL_INT))
             {
+                
                 std::cerr << "Type in conditions mismatch!" << std::endl;
                 return false;
+            }
+
+            if (type == common::attrtype::SQL_FLOAT && (int)cond.val.type == common::attrtype::SQL_INT){
+                cond.val.type = common::attrtype::SQL_FLOAT;
+                cond.val.r = cond.val.i;
             }
         }
     return true;
 }
-
 

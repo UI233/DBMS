@@ -121,8 +121,7 @@ bool API::createIndex(const std::string & index_name, const std::string &table_n
                 auto length = attr_type.getSize();
                 auto raw_data = record_manager.getRawData(table_name, i);
                 auto key = raw_data.c_str() + offset;
-                index_manager.insert(common::getIndexFile(index_name,table_name,attr_name), (unsigned char*)key, i);
-            }
+                index_manager.insert(common::getIndexFile(index_name,table_name,attr_name), (unsigned char*)key, i); }
     }
     catch(const std::exception& e)
     {
@@ -243,54 +242,6 @@ bool API::displaySelect(const std::string& table_name, const std::vector<std::st
     return true;
 }
 
-
-//bool API::displaySelect(const std::string& table_name, const std::vector<std::string>& raw_data) {
-//    auto& cm = API::getCM();
-//    auto& rm = API::getRM();
-//    try {(
-//        auto table = cm.getTableByName(table_name);
-//        using cmp_t = std::pair<std::string, int>;
-//        std::vector<cmp_t> attr_temp;
-//        if (!table) {
-//            std::cerr << "No such table\n" << std::endl;
-//            return false;
-//        }
-//        for (auto itr: table->attrs)
-//            attr_temp.push_back(std::make_pair(itr.first, itr.second.order));
-//        std::sort(attr_temp.begin(), attr_temp.end(), [](const cmp_t &lhs, const cmp_t &rhs) {return lhs.second < rhs.second;});
-//
-//        if (!table) {
-//            std::cerr << "Table not exist\n";
-//        }
-//        // Todo
-//        auto attr_num = table->getAttrNum();
-//        for (const auto &attr: attr_temp)
-//            printf("%12s", attr.first);
-//        for (const auto &data: raw_data) {
-//            for (const auto &attr: attr_temp) {
-//                int offset = table->getOffset(attr.first);
-//                auto attr_type = table->attrs[attr.first];
-//                if (attr_type.type == common::attrtype::SQL_INT)
-//                    printf("%12d", *(int*)&data[offset]);
-//                if (attr_type.type == common::attrtype::SQL_CHAR) {
-//                    char *p = new char[attr_type.size + 1];
-//                    memcpy(p, (void*)(data.c_str() + offset), attr_type.getSize());
-//                    p[attr_type.getSize()] = '\0';
-//                    printf("%12s", p);
-//                    delete[] p;
-//                }
-//                if (attr_type.type == common::attrtype::SQL_FLOAT)
-//                    printf("%12f", *(float*)&data[offset]);
-//            }
-//        }
-//    }
-//    catch(const std::exception& e) {
-//        std::cerr << e.what() << '\n';
-//        return false;
-//    }
-//
-//    return true;
-//}
 /*const std::string& data
 insert_query->value_list*/
 bool API::insertRecord(const std::string& table_name, const std::vector<SQLValue> value_list)
@@ -307,7 +258,7 @@ bool API::insertRecord(const std::string& table_name, const std::vector<SQLValue
     size_t total_sz = 0;
     for (auto &attr : table->attrs)
         total_sz += attr.second.getSize();
-    data.resize(total_sz);
+    data.resize(total_sz, 0);
     total_sz = 0;
     for(auto &attr: table->attrs)
     {
@@ -333,7 +284,7 @@ bool API::insertRecord(const std::string& table_name, const std::vector<SQLValue
         auto length = itr.second.getSize();
         auto key = data.c_str() + offset;
         std::string raw_data;
-        raw_data.resize(length);
+        raw_data.resize(length, 0);
         data.copy((char*)raw_data.c_str(), length, offset);
 
         if (itr.second.unique){
@@ -408,15 +359,15 @@ bool API::select(const std::string &table_name, const std::vector<Condition> &co
         switch(it.val.type)
         {
             case common::attrtype::SQL_INT:
-                str.resize(sizeof(int));
+                str.resize(sizeof(int), 0);
                 memcpy(&str[0],(char *)&it.val.i,sizeof(int));
                 break;
             case common::attrtype::SQL_FLOAT:
-                str.resize(sizeof(float));
+                str.resize(sizeof(float), 0);
                 memcpy(&str[0],(char *)&(it.val.r),sizeof(float));
                 break;
             case common::attrtype::SQL_CHAR:
-                str.resize(it.val.str.size());
+                str.resize(it.val.str.size(), 0);
                 memcpy(&str[0],it.val.str.c_str(),it.val.str.size());
                 break;
         }
@@ -448,7 +399,7 @@ bool API::select(const std::string &table_name, const std::vector<Condition> &co
     if (!r)
         return false;
     displaySelect(table_name, records);
-    std::cout << ids.size() << " rows in set ";
+    std::cout << records.size() << " rows in set ";
     return r;
 }
 
@@ -504,15 +455,15 @@ bool API::deleteOperation(const std::string &table_name, const std::vector<Condi
         switch(it.val.type)
         {
             case common::attrtype::SQL_INT:
-                str.resize(sizeof(int));
+                str.resize(sizeof(int), 0);
                 memcpy(&str[0],(char *)&it.val.i,sizeof(int));
                 break;
             case common::attrtype::SQL_FLOAT:
-                str.resize(sizeof(float));
+                str.resize(sizeof(float), 0);
                 memcpy(&str[0],(char *)&(it.val.r),sizeof(float));
                 break;
             case common::attrtype::SQL_CHAR:
-                str.resize(it.val.str.size());
+                str.resize(it.val.str.size(), 0);
                 memcpy(&str[0],it.val.str.c_str(),it.val.str.size());
                 break;
         }
@@ -552,6 +503,6 @@ bool API::deleteOperation(const std::string &table_name, const std::vector<Condi
     }
 
     // remove the index
-    std::cout<<"Query Ok "<<ids.size()<<" rows affected ";
+    std::cout<<"Query Ok "<<records.size()<<" rows affected ";
     return r;
 }
