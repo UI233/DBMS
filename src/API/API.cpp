@@ -272,6 +272,10 @@ bool API::insertRecord(const std::string& table_name, const std::vector<SQLValue
                 break;
             case common::attrtype::SQL_CHAR:
                 memcpy((void*)(data.c_str() + total_sz), value_list[attr.second.order].str.c_str(), table->attrs[attr.first].getSize());
+                {
+                    for (size_t i = data.length(); i < attr.second.getSize();++i)
+                        data[i] = 0;
+                }
                 break;
         }
         total_sz += attr.second.getSize();
